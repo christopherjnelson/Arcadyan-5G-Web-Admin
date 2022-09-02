@@ -2,6 +2,8 @@
 
 ### `git clone https://github.com/christopherjnelson/Arcadyan-5G-Web-Admin.git`
 
+### `cd Arcadyan-5G-Web-Admin`
+
 ### `npm install`
 
 ### `npm start`
