@@ -47,7 +47,7 @@ function Signal() {
                   </Row>
                   <Row>
                     <Col>MAC</Col>
-                    <Col></Col>
+                    <Col>{cellData.device.macId}</Col>
                   </Row>
                   <Row>
                     <Col>Manufacturer</Col>
@@ -59,7 +59,7 @@ function Signal() {
                   </Row>
                   <Row>
                     <Col>SN</Col>
-                    <Col></Col>
+                    <Col>{cellData.device.serial}</Col>
                   </Row>
                   <Row>
                     <Col>Firmware</Col>
