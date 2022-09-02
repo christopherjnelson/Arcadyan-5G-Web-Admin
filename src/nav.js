@@ -8,23 +8,14 @@ function NavContainer() {
   return (
     <Navbar bg="dark" variant="dark">
       <Container>
-        <Nav className="container-fluid">
-          <Nav.Item>
-            <Navbar.Brand as={Link} to="/">
-              KVD Admin
-            </Navbar.Brand>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link as={Link} to="/">
-              Signal
-            </Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link as={Link} to="/system">
-              System
-            </Nav.Link>
-          </Nav.Item>
-        </Nav>
+        <Navbar.Brand href="/">KVD Admin</Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            <Nav.Link href="/">Signal</Nav.Link>
+            <Nav.Link href="/signal">System</Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
       </Container>
     </Navbar>
   );
