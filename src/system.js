@@ -90,11 +90,9 @@ function System() {
       body: JSON.stringify(wifiConfig),
     })
       .then((response) => {
-        alert("Success");
         console.log(response);
       })
       .catch(function (error) {
-        alert("Error");
         console.log(error);
       });
   };
