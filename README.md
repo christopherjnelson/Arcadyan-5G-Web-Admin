@@ -19,4 +19,4 @@ Disable/Enable Wi-Fi Radio
 Reboot Gateway
 
 ![Stats](https://i.imgur.com/nD2UUum.png)
-![System](https://i.imgur.com/J4tAZqv.png)
+![System](https://i.imgur.com/f1nIIlC.png)
