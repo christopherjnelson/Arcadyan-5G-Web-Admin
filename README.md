@@ -11,5 +11,5 @@
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-![Stats]https://i.imgur.com/GG1LWTs.png)
-![System]https://i.imgur.com/J4tAZqv.png)
+![Stats](https://i.imgur.com/GG1LWTs.png)
+![System](https://i.imgur.com/J4tAZqv.png)
