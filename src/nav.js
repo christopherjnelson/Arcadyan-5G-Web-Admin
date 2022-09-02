@@ -13,7 +13,7 @@ function NavContainer() {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="/">Signal</Nav.Link>
-            <Nav.Link href="/signal">System</Nav.Link>
+            <Nav.Link href="/system">System</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
