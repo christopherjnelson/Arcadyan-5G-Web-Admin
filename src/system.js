@@ -4,6 +4,8 @@ import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
+import CardGroup from "react-bootstrap/CardGroup";
 import { useNavigate } from "react-router-dom";
 
 function System() {
@@ -34,11 +36,6 @@ function System() {
     method: "GET",
     headers: AuthHeader,
   };
-  const authWifiPostOptions = {
-    method: "POST",
-    headers: AuthHeader,
-    body: wifiData,
-  };
 
   const loginOptions = {
     method: "POST",
@@ -63,6 +60,7 @@ function System() {
       })
       .catch(function (error) {
         console.log(error);
+        alert("Error");
       });
   };
 
@@ -72,46 +70,61 @@ function System() {
       fetch("/TMI/v1/network/configuration?get=ap", authWifiOptions)
         .then((response) => response.json())
         .then((data) => {
-          setWifiData(JSON.stringify(data));
+          setWifiData(data);
+          alert("Succes");
         })
         .catch(function (error) {
           console.log(error);
+          alert("Error");
         });
     } else {
       alert("Login to Gateway first");
     }
   };
 
-  const setWifi = () => {
-    console.log("setting wifi data");
-    console.log(wifiData);
-    fetch("/TMI/v1/network/configuration?set=ap", authWifiPostOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
+  const setWifi = (wifiConfig) => {
+    console.log("setting wifi config");
+    fetch("/TMI/v1/network/configuration?set=ap", {
+      method: "POST",
+      headers: AuthHeader,
+      body: JSON.stringify(wifiConfig),
+    })
+      .then((response) => {
+        alert("Success");
+        console.log(response);
       })
       .catch(function (error) {
+        alert("Error");
         console.log(error);
       });
   };
 
   const wifiOn = () => {
     if (wifiData) {
-      let onString = wifiData.replace(false, true);
-      console.log(onString);
-      setWifiData(onString);
-      setWifi();
+      const configWifiOn = {
+        ...wifiData,
+        "2.4ghz": { ...wifiData["2.4ghz"], isRadioEnabled: true },
+        "5.0ghz": { ...wifiData["5.0ghz"], isRadioEnabled: true },
+      };
+      setWifi(configWifiOn);
     } else {
       alert("Get Data First");
     }
   };
 
   const wifiOff = () => {
-    let jsonString = JSON.stringify(wifiData);
-    jsonString = jsonString.replace(true, false);
-    let jsonObject = JSON.parse(jsonString);
-    setWifiData(jsonObject);
-    setWifi();
+    if (wifiData) {
+      console.log(wifiData);
+      const configWifiOn = {
+        ...wifiData,
+        "2.4ghz": { ...wifiData["2.4ghz"], isRadioEnabled: false },
+        "5.0ghz": { ...wifiData["5.0ghz"], isRadioEnabled: false },
+      };
+      console.log(configWifiOn);
+      setWifi(configWifiOn);
+    } else {
+      alert("Get Data First");
+    }
   };
 
   const restartGateway = () => {
@@ -130,44 +143,66 @@ function System() {
   return (
     <div>
       <Container>
-        <Row>
-          <Col>
-            <h3>WiFi Radio </h3>
-            <Button variant="primary">Get Data</Button>{" "}
-            <Button variant="success">Radio On</Button>{" "}
-            <Button variant="danger">Radio Off</Button>{" "}
-          </Col>
-          <Col>
-            <h3>Restart Gateway </h3>
-            <Button variant="warning" onClick={restartGateway}>
-              Restart
-            </Button>{" "}
-          </Col>
-        </Row>
-        <Row>
-          <h3>Login to Gateway</h3>
-          <Form>
-            <Row>
-              <Col xs={7}>
-                <Form.Group className="mb-1" controlId="formBasicPassword">
-                  <Form.Control
-                    type="password"
-                    placeholder="Gateway Password"
-                    value={password}
-                    onChange={handlePassword}
-                  />
-                  <Button
-                    type="submit"
-                    variant="warning"
-                    onClick={handleSubmitPassword}
-                  >
-                    Login
-                  </Button>{" "}
-                </Form.Group>
-              </Col>
-            </Row>
-          </Form>
-        </Row>
+        <h3 className="mt-2">System</h3>
+        <CardGroup>
+          <Card bg="dark" text="light" className="m-2 rounded">
+            <Card.Body>
+              <Card.Title>Wifi Radio Toggle</Card.Title>
+              <Container>
+                <Button variant="primary" className="m-1" onClick={getWifi}>
+                  Get Data
+                </Button>
+                <Button variant="success" className="m-1" onClick={wifiOn}>
+                  Radio On
+                </Button>
+                <Button variant="danger" className="m-1" onClick={wifiOff}>
+                  Radio Off
+                </Button>
+              </Container>
+            </Card.Body>
+          </Card>
+
+          <Card bg="dark" text="light" className="m-2 rounded">
+            <Card.Body>
+              <Card.Title>Reboot Gateway</Card.Title>
+              <Container>
+                <Button variant="warning" onClick={restartGateway}>
+                  Restart
+                </Button>
+              </Container>
+            </Card.Body>
+          </Card>
+          <Card bg="dark" text="light" className="m-2 rounded">
+            <Card.Body>
+              <Card.Title>Login to Gateway</Card.Title>
+              <Container>
+                <Form>
+                  <Row>
+                    <Col>
+                      <Form.Group controlId="formBasicPassword">
+                        <Form.Control
+                          type="password"
+                          placeholder="Gateway Password"
+                          value={password}
+                          className="m-2"
+                          onChange={handlePassword}
+                        />
+                        <Button
+                          type="submit"
+                          variant="warning"
+                          className="m-2"
+                          onClick={handleSubmitPassword}
+                        >
+                          Login
+                        </Button>{" "}
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Form>
+              </Container>
+            </Card.Body>
+          </Card>
+        </CardGroup>
       </Container>
     </div>
   );
