@@ -21,5 +21,15 @@ Disable/Enable Wi-Fi Radio
 
 Reboot Gateway
 
+# Upcoming Functionality:
+
+Display Devices connected to gateway
+
+Change Gateway Password
+
+Change SSID
+
+Change AP Key
+
 ![Stats](https://i.imgur.com/nD2UUum.png)
 ![System](https://i.imgur.com/f1nIIlC.png)
