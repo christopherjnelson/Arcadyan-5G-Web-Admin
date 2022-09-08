@@ -18,6 +18,7 @@ This has been only tested in development mode on the same subnet as the Gateway.
 - /TMI/v1/network/telemetry?get=cell
 - /TMI/v1/auth/admin/reset
 - /TMI/v1/auth/refresh
+- /TMI/v1/auth/login
 - /TMI/v1/profile/schedules
 - /TMI/v1/version
 - /TMI/v1/setup/onboard
