@@ -2,6 +2,8 @@
 
 This project started as a simple way to monitor the advanced cell metrics provided by the Arcadyan KVD21 and per usual, ballooned into an full fledged Web Admin for the device. I used a packet sniffer to monitor the HTTP requests the T-Mobile Home Internet App transmits and then did my best to re-produce the Mobile App's functionality. Using nmap, I was able to deduce that the Gateway is running a custom version of OpenWRT but without SSH enabled, there isnt much more we can do outside of the functionality available via the currently exposed API's I've discovered (see below). Any attempts to discover new endpoints via brute force have been unsuccessful.
 
+Unfortunately, due to how the proxy server in node works (at least how I'm understanding it so far), you'll need to be directly connected to the gateway (either via ethernet or wireless) for this to work. Attempting to connect to it from a separate subnet will result in a proxy error.
+
 # Upcoming Functionality:
 
 - Add New WiFi Network
