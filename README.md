@@ -40,4 +40,4 @@ This project started as a simple way to monitor the advanced cell metrics provid
 ![WiFi](https://i.imgur.com/WvnkZ8x.png)
 ![Wifi Editing](https://i.imgur.com/3Xmo6qM.png)
 ![System](https://i.imgur.com/38k7f1E.png)
-![System Clients](https://i.imgur.com/Cg7LBzJ.png)
+![System Clients](https://i.imgur.com/BxpQ2Lu.jpg)
