@@ -22,11 +22,13 @@ const Login = () => {
 
     loginUser({ username: "admin", password: password })
       .then((response) => {
+        console.log(response);
         setUser({ token: response.data.auth.token, password: password });
         setIsLoading(false);
         navigate("/", { replace: true });
       })
       .catch((error) => {
+        console.log(error);
         console.log(error.toJSON());
         if (error.response.status === 500) {
           setAlertGateway(true);

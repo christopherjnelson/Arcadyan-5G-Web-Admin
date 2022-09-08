@@ -76,7 +76,6 @@ const Signal = () => {
   return (
     <div className="App">
       <Container>
-        <h3 className="mt-2">Signal Metrics</h3>
         <CardGroup>
           <Card bg="dark" text="light" className="m-2 rounded shadow">
             <Card.Body>

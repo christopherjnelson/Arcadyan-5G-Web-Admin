@@ -2,21 +2,21 @@ import axios from "axios";
 //////////////////
 //// Set API Endpoints
 //////////////////
-const apiEndPoint = "/TMI/v1/";
-const gateWayURL = "gateway/?get=all";
-const getWifiConfigURL = "network/configuration/v2?get=ap";
-const setWifiConfigURL = "network/configuration/v2?set=ap";
-const getDevicesURL = "network/telemetry/?get=clients";
-const rebootURL = "gateway/reset?set=reboot";
-const authURL = "auth/login";
-const resetURL = "auth/admin/reset";
+
+const gateWayURL = "api/gateway/?get=all";
+const getWifiConfigURL = "api/network/configuration/v2?get=ap";
+const setWifiConfigURL = "api/network/configuration/v2?set=ap";
+const getDevicesURL = "api/network/telemetry/?get=clients";
+const rebootURL = "api/gateway/reset?set=reboot";
+const authURL = "api/auth/login";
+const resetURL = "api/auth/admin/reset";
 //////////////////
 //// Get Cell Signal Data
 //////////////////
 export const getSignalData = async () => {
   console.log("getSignalData");
   const response = await axios({
-    url: apiEndPoint + gateWayURL,
+    url: gateWayURL,
     method: "get",
   });
   return response;
@@ -28,7 +28,7 @@ export const getWifiData = async (options) => {
   console.log("getWifiData");
   const response = await axios({
     method: "get",
-    url: apiEndPoint + getWifiConfigURL,
+    url: getWifiConfigURL,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -47,7 +47,7 @@ export const setWifiData = async (options, data) => {
   console.log(data);
   const response = await axios({
     method: "post",
-    url: apiEndPoint + setWifiConfigURL,
+    url: setWifiConfigURL,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -65,7 +65,7 @@ export const getDeviceData = async (options) => {
   console.log("getDeviceData");
   const response = await axios({
     method: "get",
-    url: apiEndPoint + getDevicesURL,
+    url: getDevicesURL,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -82,7 +82,7 @@ export const loginUser = async (options) => {
   console.log("loginUser");
   const response = await axios({
     method: "post",
-    url: apiEndPoint + authURL,
+    url: authURL,
     data: options,
   });
 
@@ -99,7 +99,7 @@ export const resetPassword = async (options, credentials) => {
   console.log(credentials);
   const response = await axios({
     method: "post",
-    url: apiEndPoint + resetURL,
+    url: resetURL,
     timeout: 4000,
     headers: {
       Authorization: "Bearer " + options,
@@ -119,7 +119,7 @@ export const rebootGateway = async (options) => {
   console.log("reboot gateway");
   const response = await axios({
     method: "post",
-    url: apiEndPoint + rebootURL,
+    url: rebootURL,
     timeout: 4000,
     headers: {
       Authorization: "Bearer " + options,
