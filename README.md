@@ -1,8 +1,15 @@
+# Instructions
+
+- git clone https://github.com/christopherjnelson/Arcadyan-5G-Web-Admin.git
+- cd Arcadyan-5G-Web-Admin
+- npm install
+- npm start
+
 # Overview:
 
 This project started as a simple way to monitor the advanced cell metrics provided by the Arcadyan KVD21 and per usual, ballooned into an full fledged Web Admin for the device. I used a packet sniffer to monitor the HTTP requests the T-Mobile Home Internet App transmits and then did my best to re-produce the Mobile App's functionality. ~~Using nmap, I was able to deduce that the Gateway is running a custom version of OpenWRT~~ (According to [this user](https://github.com/chainofexecution/Arcadyan-KVD21), the gateway is running Android) but without SSH enabled, there isnt much more we can do outside of the functionality available via the currently exposed API's I've discovered (see below). Any attempts to discover new endpoints via brute force have been unsuccessful.
 
-This has been only tested in development mode on the same subnet as the Gateway. Im unable to confirm if the proxy will work if you have a router between the gateway.
+_Note:_ VPN's must be disabled in order to connect to the gateway via the webapp.
 
 # Upcoming Functionality:
 
