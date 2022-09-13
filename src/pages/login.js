@@ -28,13 +28,16 @@ const Login = () => {
         navigate("/", { replace: true });
       })
       .catch((error) => {
-        console.log(error);
+        console.log(error.message);
         console.log(error.toJSON());
-        if (error.response.status === 500) {
+        if (error.message === "timeout of 4000ms exceeded") {
           setAlertGateway(true);
           setIsLoading(false);
         } else if (error.response.status === 401) {
           setAlertPassword(true);
+          setIsLoading(false);
+        } else if (error.response.status >= 500) {
+          setAlertGateway(true);
           setIsLoading(false);
         }
       });

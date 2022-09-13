@@ -16,8 +16,9 @@ const resetURL = "api/auth/admin/reset";
 export const getSignalData = async () => {
   console.log("getSignalData");
   const response = await axios({
-    url: gateWayURL,
     method: "get",
+    url: gateWayURL,
+    timeout: 4000,
   });
   return response;
 };
@@ -29,6 +30,7 @@ export const getWifiData = async (options) => {
   const response = await axios({
     method: "get",
     url: getWifiConfigURL,
+    timeout: 4000,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -48,6 +50,7 @@ export const setWifiData = async (options, data) => {
   const response = await axios({
     method: "post",
     url: setWifiConfigURL,
+    timeout: 4000,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -66,6 +69,7 @@ export const getDeviceData = async (options) => {
   const response = await axios({
     method: "get",
     url: getDevicesURL,
+    timeout: 4000,
     headers: {
       Authorization: "Bearer " + options,
     },
@@ -83,6 +87,7 @@ export const loginUser = async (options) => {
   const response = await axios({
     method: "post",
     url: authURL,
+    timeout: 4000,
     data: options,
   });
 

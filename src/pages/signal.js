@@ -55,6 +55,7 @@ const Signal = () => {
 
   const signalSwitch = (rating) =>
     ({
+      null: "Offline",
       0: "Offline",
       1: "Poor",
       2: "Fair",
@@ -65,6 +66,7 @@ const Signal = () => {
 
   const signalColorSwitch = (rating) =>
     ({
+      null: "danger",
       0: "danger",
       1: "danger",
       2: "warning",
@@ -86,37 +88,37 @@ const Signal = () => {
                     <Col>
                       <b>HWVersion</b>
                     </Col>
-                    <Col>{cellData?.device?.hardwareVersion}</Col>
+                    <Col>{cellData?.device.hardwareVersion}</Col>
                   </Row>
                   <Row className="mb-1">
                     <Col>
                       <b>MAC</b>
                     </Col>
-                    <Col>{cellData?.device?.macId}</Col>
+                    <Col>{cellData?.device.macId}</Col>
                   </Row>
                   <Row className="mb-1">
                     <Col>
                       <b>Manufacturer</b>
                     </Col>
-                    <Col>{cellData?.device?.manufacturer}</Col>
+                    <Col>{cellData?.device.manufacturer}</Col>
                   </Row>
                   <Row className="mb-1">
                     <Col>
                       <b>Model</b>
                     </Col>
-                    <Col>{cellData?.device?.model}</Col>
+                    <Col>{cellData?.device.model}</Col>
                   </Row>
                   <Row className="mb-1">
                     <Col>
                       <b>SN</b>
                     </Col>
-                    <Col>{cellData?.device?.serial}</Col>
+                    <Col>{cellData?.device.serial}</Col>
                   </Row>
                   <Row className="mb-1">
                     <Col>
                       <b>Firmware</b>
                     </Col>
-                    <Col>{cellData?.device?.softwareVersion}</Col>
+                    <Col>{cellData?.device.softwareVersion}</Col>
                   </Row>
                 </Container>
               ) : (
@@ -136,10 +138,10 @@ const Signal = () => {
                     <Col>
                       <ProgressBar
                         variant={signalColorSwitch(
-                          cellData?.signal?.["4g"].bars
+                          cellData?.signal["4g"]?.bars
                         )}
-                        now={cellData?.signal?.["4g"].bars * 20}
-                        label={signalSwitch(cellData?.signal?.["4g"].bars)}
+                        now={cellData?.signal["4g"]?.bars * 20}
+                        label={signalSwitch(cellData?.signal["4g"]?.bars)}
                       />
                     </Col>
                     <Col></Col>
@@ -148,7 +150,7 @@ const Signal = () => {
                     <Col>
                       <b>Band</b>
                     </Col>
-                    <Col>{cellData?.signal?.["4g"].bands}</Col>
+                    <Col>{cellData?.signal["4g"].bands}</Col>
                     <Col>
                       <OverlayTrigger
                         trigger="click"
@@ -164,7 +166,7 @@ const Signal = () => {
                     <Col>
                       <b>RSRP</b>
                     </Col>
-                    <Col>{cellData?.signal?.["4g"].rsrp} dBm</Col>
+                    <Col>{cellData?.signal["4g"].rsrp} dBm</Col>
                     <Col>
                       <OverlayTrigger
                         trigger="click"
@@ -179,7 +181,7 @@ const Signal = () => {
                     <Col>
                       <b>RSRQ</b>
                     </Col>
-                    <Col>{cellData?.signal?.["4g"].rsrq} dB</Col>
+                    <Col>{cellData?.signal["4g"].rsrq} dB</Col>
                     <Col>
                       <OverlayTrigger
                         trigger="click"
@@ -194,7 +196,7 @@ const Signal = () => {
                     <Col>
                       <b>SINR</b>
                     </Col>
-                    <Col>{cellData?.signal?.["4g"].sinr} dB</Col>
+                    <Col>{cellData?.signal["4g"].sinr} dB</Col>
                     <Col>
                       <OverlayTrigger
                         trigger="click"
@@ -223,10 +225,10 @@ const Signal = () => {
                     <Col>
                       <ProgressBar
                         variant={signalColorSwitch(
-                          cellData?.signal?.["5g"].bars
+                          cellData?.signal?.["5g"]?.bars
                         )}
-                        now={cellData?.signal?.["5g"].bars * 20}
-                        label={signalSwitch(cellData?.signal?.["5g"].bars)}
+                        now={cellData?.signal?.["5g"]?.bars * 20}
+                        label={signalSwitch(cellData?.signal?.["5g"]?.bars)}
                       />
                     </Col>
                     <Col></Col>
