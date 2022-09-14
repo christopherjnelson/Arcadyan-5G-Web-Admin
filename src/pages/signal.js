@@ -24,11 +24,17 @@ import {
 } from "../modules/popovers";
 
 const Signal = () => {
+  /**
+   * Declare States/Context
+   */
   const [cellData, setCellData] = useState();
   const { user } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
+  /**
+   * Get Signal Data Function
+   */
   const getData = () => {
     getSignalData()
       .then((signalData) => {
@@ -39,7 +45,9 @@ const Signal = () => {
         console.log(error);
       });
   };
-
+  /**
+   * Call Get Data on load if if user token exists. Send to login page otherwise. Refresh on changes to Navigation or User State
+   */
   useEffect(() => {
     setIsLoading(true);
     if (user !== null) {
@@ -52,7 +60,9 @@ const Signal = () => {
       navigate("/login", { replace: true });
     }
   }, [navigate, user]);
-
+  /**
+   * Switches for Color/Names of progress bar
+   */
   const signalSwitch = (rating) =>
     ({
       null: "Offline",
@@ -63,7 +73,6 @@ const Signal = () => {
       4: "Very Good",
       5: "Excellent",
     }[rating]);
-
   const signalColorSwitch = (rating) =>
     ({
       null: "danger",
@@ -74,7 +83,9 @@ const Signal = () => {
       4: "success",
       5: "info",
     }[rating]);
-
+  /**
+   * Return JSX
+   */
   return (
     <div className="App">
       <Container>

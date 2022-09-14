@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Spinner } from "react-bootstrap";
-
 import { AuthContext } from "../context/AuthContext";
 import WifiCard from "../components/wifiCard";
 import { getWifiData, loginUser } from "../modules/services";
@@ -13,7 +11,9 @@ const WiFi = () => {
   const [wifiConfig, setWifiConfig] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
+  /**
+   * Get Wifi Data. Login if token expires
+   */
   const getData = () => {
     setIsLoading(true);
     getWifiData(user.token)
@@ -36,7 +36,9 @@ const WiFi = () => {
           });
       });
   };
-
+  /**
+   * Call Get Data on load if if user token exists. Send to login page otherwise. Refresh on changes to User State
+   */
   useEffect(() => {
     if (user) {
       getData();
@@ -48,7 +50,9 @@ const WiFi = () => {
       navigate("/login", { replace: true });
     }
   }, [user]);
-
+  /**
+   * Return JSX
+   */
   return (
     <Container>
       {wifiConfig ? (

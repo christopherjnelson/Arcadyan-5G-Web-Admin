@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-////////////////////////////////
 import {
   getDeviceData,
   rebootGateway,
@@ -20,25 +19,36 @@ import {
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-//////////////////////
 import { AuthContext } from "../context/AuthContext";
 import DeviceCardGroup from "../components/deviceCardGroup";
 
 const System = () => {
+  /**
+   * Declare States/Context
+   */
   const { user, setUser } = useContext(AuthContext);
+  const [clients, setClients] = useState({
+    wifi2: 0,
+    wifi5: 0,
+    ethernet: 0,
+  });
+  const [deviceData, setDeviceData] = useState({
+    data: null,
+    loading: true,
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [deviceData, setDeviceData] = useState();
   const [showDevices, setShowDevices] = useState(false);
-  const [wifi2Clients, setWifi2Clients] = useState(0);
-  const [wifi5Clients, setWifi5Clients] = useState(0);
-  const [ethernetClients, setEthernetClients] = useState(0);
   const [currentPassword, setCurrentPassword] = useState(user?.password);
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-
+  /**
+   * Declare Page Navigation Function
+   */
   const navigate = useNavigate();
-
+  /**
+   * Call Get Data on load if if user token exists. Send to login page otherwise. Refresh on changes to User State
+   */
   useEffect(() => {
     if (user) {
       getData();
@@ -51,13 +61,18 @@ const System = () => {
     }
   }, [user]);
 
+  /**
+   * Get Device Client Data Function
+   */
   const getData = () => {
     getDeviceData(user.token)
       .then((clientData) => {
-        setEthernetClients(clientData.data.clients.ethernet.length);
-        setWifi2Clients(clientData.data.clients["2.4ghz"].length);
-        setWifi5Clients(clientData.data.clients["5.0ghz"].length);
-        setDeviceData(clientData);
+        setClients({
+          wifi2: clientData.data.clients["2.4ghz"].length,
+          wifi5: clientData.data.clients["5.0ghz"].length,
+          ethernet: clientData.data.clients.ethernet.length,
+        });
+        setDeviceData({ data: clientData, loading: false });
       })
       .catch((error) => {
         console.log(error.toJSON());
@@ -75,6 +90,26 @@ const System = () => {
       });
   };
 
+  /**
+   * Restart Gateway Function
+   */
+  const restart = () => {
+    setIsLoading(true);
+    rebootGateway(user.token)
+      .then((response) => {
+        console.log(response.toJSON());
+      })
+      .catch((error) => {
+        console.log(error.toJSON());
+        if (error.message === "timeout of 4000ms exceeded") {
+          setIsLoading(false);
+          navigate("/login", { replace: true });
+        }
+      });
+  };
+  /**
+   * Handle Password Change Submit Button
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentPassword === user?.password) {
@@ -96,13 +131,16 @@ const System = () => {
       alert("Wrong password");
     }
   };
-  ////////////////
+
   const handleCurrentPassword = (e) => {
     setCurrentPassword(e.target.value);
   };
   const handleNewPassword = (e) => {
     setNewPassword(e.target.value);
   };
+  /**
+   * Handle Visibility
+   */
   const handleShowPassword = (e) => {
     setShowPassword(!showPassword);
   };
@@ -112,22 +150,9 @@ const System = () => {
   const deviceDisplay = () => {
     setShowDevices(!showDevices);
   };
-
-  const restart = () => {
-    setIsLoading(true);
-    rebootGateway(user.token)
-      .then((response) => {
-        console.log(response.toJSON());
-      })
-      .catch((error) => {
-        console.log(error.toJSON());
-        if (error.message === "timeout of 4000ms exceeded") {
-          setIsLoading(false);
-          navigate("/login", { replace: true });
-        }
-      });
-  };
-
+  /**
+   * Return JSX
+   */
   return (
     <div>
       <Container>
@@ -210,19 +235,43 @@ const System = () => {
                   <Col>
                     <b>2.4GHz</b>
                   </Col>
-                  <Col>{wifi2Clients}</Col>
+                  <Col>
+                    {deviceData.loading ? (
+                      <Row className="mt-3">
+                        <Spinner animation="border" />
+                      </Row>
+                    ) : (
+                      clients.wifi2
+                    )}
+                  </Col>
                 </Row>
                 <Row className="w-75 mb-2">
                   <Col>
                     <b>5GHz</b>
                   </Col>
-                  <Col>{wifi5Clients}</Col>
+                  <Col>
+                    {deviceData.loading ? (
+                      <Row className="mt-3">
+                        <Spinner animation="border" />
+                      </Row>
+                    ) : (
+                      clients.wifi5
+                    )}
+                  </Col>
                 </Row>
                 <Row className="w-75 mb-2">
                   <Col>
                     <b>Ethernet</b>
                   </Col>
-                  <Col>{ethernetClients}</Col>
+                  <Col>
+                    {deviceData.loading ? (
+                      <Row className="mt-3">
+                        <Spinner animation="border" />
+                      </Row>
+                    ) : (
+                      clients.ethernet
+                    )}
+                  </Col>
                 </Row>
                 <Row>
                   {showDevices ? (
