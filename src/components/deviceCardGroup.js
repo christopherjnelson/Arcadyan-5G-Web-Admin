@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import DeviceCard from "./deviceCard";
 
 const DeviceCardGroup = ({ props, data }) => {
+  console.log(data);
   return (
     <CardGroup>
       {data.map((device, i) => (

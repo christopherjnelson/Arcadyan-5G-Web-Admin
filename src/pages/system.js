@@ -72,7 +72,8 @@ const System = () => {
           wifi5: clientData.data.clients["5.0ghz"].length,
           ethernet: clientData.data.clients.ethernet.length,
         });
-        setDeviceData({ data: clientData, loading: false });
+        console.log(clientData.data);
+        setDeviceData({ data: clientData.data, loading: false });
       })
       .catch((error) => {
         console.log(error.toJSON());
@@ -297,12 +298,12 @@ const System = () => {
           </Card>
         </CardGroup>
         {showDevices ? (
-          Object.keys(deviceData.data.clients).map((key, index) => {
+          Object.keys(deviceData.data?.clients).map((key, index) => {
             return (
               <DeviceCardGroup
                 key={index}
                 props={key}
-                data={deviceData.data.clients[key]}
+                data={deviceData.data?.clients[key]}
               />
             );
           })
