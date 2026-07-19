@@ -43,9 +43,19 @@ async function renderSystemPage() {
   await waitFor(() => expect(api.getClients).toHaveBeenCalled());
 }
 
-async function submitPasswordForm(current: string, next: string) {
+async function submitPasswordForm(
+  current: string,
+  next: string,
+  confirm: string = next,
+) {
   await userEvent.type(screen.getByLabelText("Current Password"), current);
   await userEvent.type(screen.getByLabelText("New Password"), next);
+  if (confirm) {
+    await userEvent.type(
+      screen.getByLabelText("Confirm New Password"),
+      confirm,
+    );
+  }
   await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
 }
 
@@ -78,6 +88,42 @@ describe("SystemPage password change", () => {
     expect(api.resetAdminPassword).toHaveBeenCalledTimes(1);
   });
 
+  it("clears both new-password fields after a successful change", async () => {
+    vi.mocked(api.resetAdminPassword).mockResolvedValue(undefined);
+    await renderSystemPage();
+
+    await submitPasswordForm(CURRENT_PASSWORD, NEW_PASSWORD);
+
+    await screen.findByText(/Password updated/);
+    expect(screen.getByLabelText("New Password")).toHaveValue("");
+    expect(screen.getByLabelText("Confirm New Password")).toHaveValue("");
+  });
+
+  it("blocks the request and explains why when the new passwords differ", async () => {
+    await renderSystemPage();
+
+    await submitPasswordForm(CURRENT_PASSWORD, NEW_PASSWORD, "different-pass");
+
+    expect(
+      await screen.findByText("New passwords do not match."),
+    ).toBeVisible();
+    const confirmInput = screen.getByLabelText("Confirm New Password");
+    expect(confirmInput).toHaveAttribute("aria-invalid", "true");
+    expect(confirmInput).toHaveAccessibleDescription(
+      "New passwords do not match.",
+    );
+    expect(api.resetAdminPassword).not.toHaveBeenCalled();
+  });
+
+  it("requires the confirmation to be filled in before submitting", async () => {
+    await renderSystemPage();
+
+    await submitPasswordForm(CURRENT_PASSWORD, NEW_PASSWORD, "");
+
+    expect(screen.getByLabelText("Confirm New Password")).toHaveValue("");
+    expect(api.resetAdminPassword).not.toHaveBeenCalled();
+  });
+
   it("rejects the change when the current password does not match", async () => {
     await renderSystemPage();
 
@@ -100,5 +146,27 @@ describe("SystemPage password change", () => {
       username: "admin",
       password: CURRENT_PASSWORD,
     });
+    // A gateway failure must not wipe what the user typed.
+    expect(screen.getByLabelText("New Password")).toHaveValue(NEW_PASSWORD);
+    expect(screen.getByLabelText("Confirm New Password")).toHaveValue(
+      NEW_PASSWORD,
+    );
+  });
+
+  it("gives every password field a label and its own visibility toggle", async () => {
+    await renderSystemPage();
+
+    expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
+    expect(screen.getByLabelText("New Password")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirm New Password")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show current password" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show new password" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show confirm new password" }),
+    ).toBeInTheDocument();
   });
 });

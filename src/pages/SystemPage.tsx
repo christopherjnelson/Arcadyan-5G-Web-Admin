@@ -30,14 +30,21 @@ export function SystemPage() {
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRebooting, setIsRebooting] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{
     kind: "error" | "success";
     text: string;
   } | null>(null);
+
+  // Shown live once the user starts confirming; also wired as the input's
+  // accessible description while it is visible.
+  const showMismatch =
+    confirmPassword.length > 0 && confirmPassword !== newPassword;
 
   usePolling(
     useCallback(async () => {
@@ -56,6 +63,10 @@ export function SystemPage() {
   async function handlePasswordSubmit(event: FormEvent) {
     event.preventDefault();
     setPasswordMessage(null);
+    // Never send the request unless both new-password fields agree.
+    if (newPassword !== confirmPassword) {
+      return;
+    }
     if (currentPassword !== authUser?.password) {
       setPasswordMessage({ kind: "error", text: "Current password is wrong." });
       return;
@@ -80,6 +91,7 @@ export function SystemPage() {
       });
       setCurrentPassword("");
       setNewPassword("");
+      setConfirmPassword("");
     } catch {
       setPasswordMessage({
         kind: "error",
@@ -130,7 +142,7 @@ export function SystemPage() {
                 <VisibilityToggle
                   visible={showCurrent}
                   onToggle={() => setShowCurrent((v) => !v)}
-                  subject="password"
+                  subject="current password"
                 />
               }
             />
@@ -149,10 +161,40 @@ export function SystemPage() {
                 <VisibilityToggle
                   visible={showNew}
                   onToggle={() => setShowNew((v) => !v)}
-                  subject="password"
+                  subject="new password"
                 />
               }
             />
+            <TextInput
+              id="confirm-password"
+              label="Confirm New Password"
+              type={showConfirm ? "text" : "password"}
+              placeholder="Confirm New Password"
+              required
+              minLength={8}
+              maxLength={40}
+              value={confirmPassword}
+              invalid={showMismatch}
+              aria-describedby={
+                showMismatch ? "confirm-password-mismatch" : undefined
+              }
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              trailing={
+                <VisibilityToggle
+                  visible={showConfirm}
+                  onToggle={() => setShowConfirm((v) => !v)}
+                  subject="confirm new password"
+                />
+              }
+            />
+            {showMismatch && (
+              <p
+                id="confirm-password-mismatch"
+                className="text-sm text-rose-400"
+              >
+                New passwords do not match.
+              </p>
+            )}
             {passwordMessage && (
               <p
                 role="status"
@@ -170,7 +212,9 @@ export function SystemPage() {
                 type="submit"
                 variant="success"
                 loading={isSaving}
-                disabled={newPassword.length < 8}
+                disabled={
+                  newPassword.length < 8 || newPassword !== confirmPassword
+                }
               >
                 Save Changes
               </Button>
