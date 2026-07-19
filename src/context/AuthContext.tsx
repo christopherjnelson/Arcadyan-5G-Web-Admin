@@ -32,9 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 username: "admin",
                 password: user.password,
               });
-              setUser((current) =>
-                current ? { ...current, token } : current,
-              );
+              setUser((current) => (current ? { ...current, token } : current));
               return token;
             } catch (error) {
               logout();

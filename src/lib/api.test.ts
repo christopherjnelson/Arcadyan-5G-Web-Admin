@@ -39,22 +39,25 @@ type Adapter = (config: InternalAxiosRequestConfig) => Promise<AxiosResponse>;
 
 let adapter: ReturnType<typeof vi.fn<Adapter>>;
 
-function ok(
-  config: InternalAxiosRequestConfig,
-  data: unknown,
-): AxiosResponse {
+function ok(config: InternalAxiosRequestConfig, data: unknown): AxiosResponse {
   return { status: 200, statusText: "OK", headers: {}, config, data };
 }
 
 function unauthorized(config: InternalAxiosRequestConfig): Promise<never> {
   return Promise.reject(
-    new AxiosError("Request failed with status code 401", "ERR_BAD_REQUEST", config, null, {
-      status: 401,
-      statusText: "Unauthorized",
-      headers: {},
+    new AxiosError(
+      "Request failed with status code 401",
+      "ERR_BAD_REQUEST",
       config,
-      data: {},
-    }),
+      null,
+      {
+        status: 401,
+        statusText: "Unauthorized",
+        headers: {},
+        config,
+        data: {},
+      },
+    ),
   );
 }
 
