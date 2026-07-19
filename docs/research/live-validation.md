@@ -20,12 +20,12 @@ Run the suite as described in [testing.md](testing.md), then record only
 sanitized observations in the table below. The local Playwright attachment is
 the detailed source of field names/types and should not be committed.
 
-| Endpoint                                      | Live status                     | Browser-visible Content-Type      | Observed top-level shape                    | UI fields checked                                        | Polling                            | Confidence                  |
-| --------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------- | ---------------------------------- | --------------------------- |
-| `POST /TMI/v1/auth/login`                     | HTTP 200 in 19 ms               | `application/json; charset=utf-8` | Deliberately excluded from diagnostics      | Authentication only                                      | Initial login and only after a 401 | Live endpoint/status        |
-| `GET /TMI/v1/gateway/?get=all`                | Two HTTP 200s in 170 and 174 ms | `application/json; charset=utf-8` | `device`, `signal`, and `time` objects      | Model, firmware, and RSRP for both present signal blocks | 5 seconds after completion         | Live schema and selected UI |
-| `GET /TMI/v1/network/configuration/v2?get=ap` | Two HTTP 200s in 58 and 61 ms   | `application/json; charset=utf-8` | `2.4ghz`, `5.0ghz`, `bandSteering`, `ssids` | Every SSID's 2.4GHz and 5GHz displayed state             | 20 seconds after completion        | Live schema and selected UI |
-| `GET /TMI/v1/network/telemetry/?get=clients`  | Two HTTP 200s in 27 and 31 ms   | `application/json; charset=utf-8` | `clients` object                            | Counts for all three interfaces                          | 5 seconds after completion         | Live schema and selected UI |
+| Endpoint                                      | Live status                     | Browser-visible Content-Type      | Observed top-level shape                    | UI fields checked                                                  | Polling                            | Confidence                  |
+| --------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------- | --------------------------- |
+| `POST /TMI/v1/auth/login`                     | HTTP 200 in 19 ms               | `application/json; charset=utf-8` | Deliberately excluded from diagnostics      | Authentication only                                                | Initial login and only after a 401 | Live endpoint/status        |
+| `GET /TMI/v1/gateway/?get=all`                | Two HTTP 200s in 170 and 174 ms | `application/json; charset=utf-8` | `device`, `signal`, and `time` objects      | Model, firmware, and RSRP for both present signal blocks           | 5 seconds after completion         | Live schema and selected UI |
+| `GET /TMI/v1/network/configuration/v2?get=ap` | Two HTTP 200s in 58 and 61 ms   | `application/json; charset=utf-8` | `2.4ghz`, `5.0ghz`, `bandSteering`, `ssids` | Radio state from the top-level flags; every SSID's band membership | 20 seconds after completion        | Live schema and selected UI |
+| `GET /TMI/v1/network/telemetry/?get=clients`  | Two HTTP 200s in 27 and 31 ms   | `application/json; charset=utf-8` | `clients` object                            | Counts for all three interfaces                                    | 5 seconds after completion         | Live schema and selected UI |
 
 ## Discrepancies to validate live
 
@@ -33,20 +33,27 @@ the detailed source of field names/types and should not be committed.
   omits Content-Type. Diagnostics report what the browser received, so a value
   of that type does not prove the firmware itself supplied it.
 - README uses `/gateway/get=all`; runtime code uses `/gateway/?get=all`.
-- Wi-Fi booleans named `2.4ghzSsid` and `5.0ghzSsid` are presented as radio
-  state. The live v2 response also contains top-level `2.4ghz.isRadioEnabled`
-  and `5.0ghz.isRadioEnabled`; the run did not establish that these global
-  flags and the per-SSID flags have equivalent semantics.
+- Wi-Fi booleans named `2.4ghzSsid` and `5.0ghzSsid` were previously presented
+  as radio state. A 2026-07-18 read-only v2 GET observed both top-level
+  `2.4ghz.isRadioEnabled` and `5.0ghz.isRadioEnabled` as `true` and the single
+  SSID's `2.4ghzSsid` and `5.0ghzSsid` as `true`, so the two sets agreed in
+  that sample. The divergent evidence came from historical issue #4: both
+  top-level flags were `false` while the UI reported the radios enabled,
+  proving the per-SSID flags can be `true` while the radios are off. The UI
+  now displays radio state from the top-level flags and the per-SSID flags
+  only as band membership; the guarded suite was re-run against that mapping
+  and passed with no blocked mutation.
 - The declared TypeScript shapes do not prove runtime type, nullability, or
   field presence. The hardware run must specifically note strings in place of
   numbers/booleans, nulls, missing keys, and additional keys.
 
 The live run confirmed `/gateway/?get=all`, confirmed that the per-SSID flags
-are booleans and match what the current UI displays, and confirmed the primitive
-types documented in `discovery-candidates.md`. It did not test the meaning or
-mutability of any field. The Content-Type value above is what the browser saw;
-because the Vite fallback supplies it when absent, it does not prove the modem
-firmware sent that header.
+are booleans and match the displayed band membership, and confirmed the
+displayed radio state against the top-level flags. It also confirmed the
+primitive types documented in `discovery-candidates.md`. It did not test the
+meaning or mutability of any field. The Content-Type value above is what the
+browser saw; because the Vite fallback supplies it when absent, it does not
+prove the modem firmware sent that header.
 
 ## README-candidate investigations
 
