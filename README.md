@@ -15,20 +15,23 @@ Then open http://localhost:5173 while connected to the gateway's network.
 The dev server proxies `/api/*` to `http://192.168.12.1/TMI/v1/*` (see
 `vite.config.ts`), so no CORS setup is needed.
 
+> VPNs must be disabled in order to connect to the gateway via the webapp.
+
 ## Scripts
 
 - `npm run dev` — start the Vite dev server
 - `npm run build` — type-check and produce a production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm test` — run the Vitest suite
+- `npm run test:watch` — run Vitest in watch mode
 - `npm run test:hardware` — run the opt-in, read-only Playwright gateway suite
 - `npm run lint` — run ESLint
 - `npm run format` — run Prettier
+- `npm run typecheck` — run `tsc` without emitting
 
 Hardware validation is skipped unless `ARCADYAN_PASSWORD` is present. See
 [`docs/research/testing.md`](docs/research/testing.md) for the safety boundary,
-local diagnostics, and sensitive-data precautions. The endpoint audit and UI
-mapping live in [`docs/research/`](docs/research/).
+local diagnostics, and sensitive-data precautions.
 
 ## Production
 
@@ -40,11 +43,11 @@ output has no proxy at all. A production deployment must reverse-proxy
 `/api/*` → `http://192.168.12.1/TMI/v1/*` (e.g. via nginx or Caddy on
 the gateway's LAN), or every API call will 404.
 
-Note that the gateway returns JSON bodies without a `Content-Type`
-header. The dev proxy fills in `application/json; charset=utf-8` when it
-is missing, so a production reverse proxy should do the same — otherwise
-Firefox logs a misleading "XML Parsing Error: not well-formed" for every
-successful response.
+The gateway returns JSON bodies without a `Content-Type` header; the dev
+proxy fills in `application/json; charset=utf-8` when it is missing, so a
+production reverse proxy should do the same. See
+[`docs/research/live-validation.md`](docs/research/live-validation.md)
+for the full observation.
 
 # Tech Stack
 
@@ -57,9 +60,7 @@ successful response.
 
 # Overview
 
-This project started as a simple way to monitor the advanced cell metrics provided by the Arcadyan KVD21 and per usual, ballooned into an full fledged Web Admin for the device. I used a packet sniffer to monitor the HTTP requests the T-Mobile Home Internet App transmits and then did my best to re-produce the Mobile App's functionality. ~~Using nmap, I was able to deduce that the Gateway is running a custom version of OpenWRT~~ (According to [this user](https://github.com/chainofexecution/Arcadyan-KVD21), the gateway is running Android) but without SSH enabled, there isnt much more we can do outside of the functionality available via the currently exposed API's I've discovered (see below). Any attempts to discover new endpoints via brute force have been unsuccessful.
-
-_Note:_ VPN's must be disabled in order to connect to the gateway via the webapp.
+This project started as a simple way to monitor the advanced cell metrics provided by the Arcadyan KVD21 and per usual, ballooned into an full fledged Web Admin for the device. I used a packet sniffer to monitor the HTTP requests the T-Mobile Home Internet App transmits and then did my best to re-produce the Mobile App's functionality. ~~Using nmap, I was able to deduce that the Gateway is running a custom version of OpenWRT~~ (According to [this user](https://github.com/chainofexecution/Arcadyan-KVD21), the gateway is running Android) but without SSH enabled, there isnt much more we can do outside of the functionality available via the currently exposed API's I've discovered. Any attempts to discover new endpoints via brute force have been unsuccessful.
 
 # Upcoming Functionality
 
@@ -68,27 +69,14 @@ _Note:_ VPN's must be disabled in order to connect to the gateway via the webapp
 - Display metric rating in Signal Popover
 - Historic Cell Metric Data
 
-# Discovered API Endpoints
+# Documentation
 
-- /TMI/v1/network/telemetry?get=clients
-- /TMI/v1/network/telemetry?get=sim
-- /TMI/v1/network/telemetry?get=cell
-- /TMI/v1/auth/admin/reset
-- /TMI/v1/auth/refresh
-- /TMI/v1/auth/login
-- /TMI/v1/profile/schedules
-- /TMI/v1/version
-- /TMI/v1/setup/onboard
-- /TMI/v1/gateway/reset?set=reboot
-- /TMI/v1/gateway/get=all
-- /TMI/v1/network/configuration/v2?get=ap
-- /TMI/v1/network/configuration/v2?set=ap
-- /auth.fcgi
-- /login_app.cgi?chk
+Detailed research and validation notes live in [`docs/research/`](docs/research/).
 
-# Open Ports
-
-- 53/TCP open domain Cloudflare public DNS
-- 80/TCP open http lighthttpd 1.4.59
-- 3517/TCP open 802-11-iapp?
-- 8080/TCP open http-proxy
+| Document | Description |
+| --- | --- |
+| [`endpoint-inventory.md`](docs/research/endpoint-inventory.md) | Every known endpoint with method, auth, classification, and consumer; includes the open ports observed on the gateway. |
+| [`ui-api-map.md`](docs/research/ui-api-map.md) | Which response fields each UI element displays and how they are transformed. |
+| [`discovery-candidates.md`](docs/research/discovery-candidates.md) | Field-level discovery from live flows; candidate fields for future use. |
+| [`live-validation.md`](docs/research/live-validation.md) | Sanitized results of guarded hardware runs and the radio-toggle experiment. |
+| [`testing.md`](docs/research/testing.md) | How to run the opt-in hardware suite safely; sensitive-data precautions. |

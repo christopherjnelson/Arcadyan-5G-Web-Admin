@@ -86,3 +86,16 @@ paths without stating methods.
   an out-of-range percentage and the default label/color behavior.
 - Wi-Fi network identity is array-index based, including the assumption that
   index 0 is the primary network.
+
+## Open ports
+
+These are the TCP ports observed open on the gateway. They are host-level
+observations, not API endpoints, and none beyond 80/TCP are used by this
+application.
+
+| Port      | Service        | Notes                       |
+| --------- | -------------- | --------------------------- |
+| 53/TCP    | domain         | Cloudflare public DNS       |
+| 80/TCP    | http           | lighttpd 1.4.59 (API host)  |
+| 3517/TCP  | 802-11-iapp?   | Unidentified                |
+| 8080/TCP  | http-proxy     | Unidentified                |
