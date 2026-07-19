@@ -60,7 +60,7 @@ export function describeJsonShape(value: unknown): JsonShape {
   return "string";
 }
 
-function safePath(rawUrl: string): string {
+export function safePath(rawUrl: string): string {
   const url = new URL(rawUrl);
   const query = new URLSearchParams();
   for (const [key, value] of url.searchParams) {
