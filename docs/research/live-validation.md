@@ -20,12 +20,12 @@ Run the suite as described in [testing.md](testing.md), then record only
 sanitized observations in the table below. The local Playwright attachment is
 the detailed source of field names/types and should not be committed.
 
-| Endpoint                                      | Live status                     | Browser-visible Content-Type      | Observed top-level shape                    | UI fields checked                                        | Polling                            | Confidence                  |
-| --------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------- | ---------------------------------- | --------------------------- |
-| `POST /TMI/v1/auth/login`                     | HTTP 200 in 19 ms               | `application/json; charset=utf-8` | Deliberately excluded from diagnostics      | Authentication only                                      | Initial login and only after a 401 | Live endpoint/status        |
-| `GET /TMI/v1/gateway/?get=all`                | Two HTTP 200s in 170 and 174 ms | `application/json; charset=utf-8` | `device`, `signal`, and `time` objects      | Model, firmware, and RSRP for both present signal blocks | 5 seconds after completion         | Live schema and selected UI |
-| `GET /TMI/v1/network/configuration/v2?get=ap` | Two HTTP 200s in 58 and 61 ms   | `application/json; charset=utf-8` | `2.4ghz`, `5.0ghz`, `bandSteering`, `ssids` | Every SSID's 2.4GHz and 5GHz displayed state             | 20 seconds after completion        | Live schema and selected UI |
-| `GET /TMI/v1/network/telemetry/?get=clients`  | Two HTTP 200s in 27 and 31 ms   | `application/json; charset=utf-8` | `clients` object                            | Counts for all three interfaces                          | 5 seconds after completion         | Live schema and selected UI |
+| Endpoint                                      | Live status                     | Browser-visible Content-Type      | Observed top-level shape                    | UI fields checked                                                  | Polling                            | Confidence                  |
+| --------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------- | --------------------------- |
+| `POST /TMI/v1/auth/login`                     | HTTP 200 in 19 ms               | `application/json; charset=utf-8` | Deliberately excluded from diagnostics      | Authentication only                                                | Initial login and only after a 401 | Live endpoint/status        |
+| `GET /TMI/v1/gateway/?get=all`                | Two HTTP 200s in 170 and 174 ms | `application/json; charset=utf-8` | `device`, `signal`, and `time` objects      | Model, firmware, and RSRP for both present signal blocks           | 5 seconds after completion         | Live schema and selected UI |
+| `GET /TMI/v1/network/configuration/v2?get=ap` | Two HTTP 200s in 58 and 61 ms   | `application/json; charset=utf-8` | `2.4ghz`, `5.0ghz`, `bandSteering`, `ssids` | Radio state from the top-level flags; every SSID's band membership | 20 seconds after completion        | Live schema and selected UI |
+| `GET /TMI/v1/network/telemetry/?get=clients`  | Two HTTP 200s in 27 and 31 ms   | `application/json; charset=utf-8` | `clients` object                            | Counts for all three interfaces                                    | 5 seconds after completion         | Live schema and selected UI |
 
 ## Discrepancies to validate live
 
@@ -33,20 +33,27 @@ the detailed source of field names/types and should not be committed.
   omits Content-Type. Diagnostics report what the browser received, so a value
   of that type does not prove the firmware itself supplied it.
 - README uses `/gateway/get=all`; runtime code uses `/gateway/?get=all`.
-- Wi-Fi booleans named `2.4ghzSsid` and `5.0ghzSsid` are presented as radio
-  state. The live v2 response also contains top-level `2.4ghz.isRadioEnabled`
-  and `5.0ghz.isRadioEnabled`; the run did not establish that these global
-  flags and the per-SSID flags have equivalent semantics.
+- Wi-Fi booleans named `2.4ghzSsid` and `5.0ghzSsid` were previously presented
+  as radio state. A 2026-07-18 read-only v2 GET observed both top-level
+  `2.4ghz.isRadioEnabled` and `5.0ghz.isRadioEnabled` as `true` and the single
+  SSID's `2.4ghzSsid` and `5.0ghzSsid` as `true`, so the two sets agreed in
+  that sample. The divergent evidence came from historical issue #4: both
+  top-level flags were `false` while the UI reported the radios enabled,
+  proving the per-SSID flags can be `true` while the radios are off. The UI
+  now displays radio state from the top-level flags and the per-SSID flags
+  only as band membership; the guarded suite was re-run against that mapping
+  and passed with no blocked mutation.
 - The declared TypeScript shapes do not prove runtime type, nullability, or
   field presence. The hardware run must specifically note strings in place of
   numbers/booleans, nulls, missing keys, and additional keys.
 
 The live run confirmed `/gateway/?get=all`, confirmed that the per-SSID flags
-are booleans and match what the current UI displays, and confirmed the primitive
-types documented in `discovery-candidates.md`. It did not test the meaning or
-mutability of any field. The Content-Type value above is what the browser saw;
-because the Vite fallback supplies it when absent, it does not prove the modem
-firmware sent that header.
+are booleans and match the displayed band membership, and confirmed the
+displayed radio state against the top-level flags. It also confirmed the
+primitive types documented in `discovery-candidates.md`. It did not test the
+meaning or mutability of any field. The Content-Type value above is what the
+browser saw; because the Vite fallback supplies it when absent, it does not
+prove the modem firmware sent that header.
 
 ## README-candidate investigations
 
@@ -85,6 +92,49 @@ failed request. Its health checks returned HTTP 200 before candidate traffic
 and after each endpoint pair. As elsewhere in this document, the Content-Type
 is browser-visible and may have been supplied by the Vite fallback rather than
 the modem.
+
+## Radio-state mutation experiment
+
+On 2026-07-18, a separately authorized single-band mutation validated whether
+the top-level `isRadioEnabled` flags are writable through
+`POST /TMI/v1/network/configuration/v2?set=ap`. The test host reached the
+gateway over wired Ethernet (its Wi-Fi interface was down), so no radio
+change could disconnect it. A pre-check of `get=clients` showed zero clients
+on both bands, so no client device was disrupted.
+
+Sanitized sequence:
+
+1. Authenticated via `POST /TMI/v1/auth/login` (token kept in memory only).
+2. `GET ?get=clients`: 0 clients on each band; selected `5.0ghz` by the
+   deterministic tie-break.
+3. `GET ?get=ap`: recorded only `5.0ghz.isRadioEnabled=true` and the single
+   SSID's membership booleans (both `true`).
+4. `POST ?set=ap` with the complete configuration and only
+   `5.0ghz.isRadioEnabled` flipped to `false`: HTTP 200.
+5. After a 5 s settle the readback GET transiently returned HTTP 408; a retry
+   confirmed `5.0ghz.isRadioEnabled=false`. The 2.4 GHz radio state and all
+   membership booleans were unchanged.
+6. Restoration `POST ?set=ap` of the original configuration: HTTP 200.
+7. `get=ap` answered transient HTTP 408s for roughly 15--30 s while the radio
+   subsystem settled, then recovered. The final readback confirmed both radios
+   `true` and membership unchanged: the original state was fully restored.
+
+Conclusions:
+
+- `5.0ghz.isRadioEnabled` is writable through the existing `set=ap` endpoint
+  when the complete configuration is posted. This is the same request shape
+  the application already sends, so no new endpoint was needed.
+- Operational side effect: for a short window after a radio-state change,
+  `get=ap` can answer HTTP 408. Callers should treat this as "settling",
+  retry reads, and avoid further mutations until reads succeed again.
+- Disabling the radio that carries a client's connection drops that client.
+  The edit UI therefore warns and requires explicit confirmation before
+  disabling a radio, and adds a stronger guard (an explicit acknowledgment)
+  before a submission that would turn off both radios.
+- Remaining uncertainty: a single KVD21 unit and firmware version was
+  observed, and only the 5 GHz band was toggled. The 2.4 GHz flag is assumed
+  symmetric but was not exercised; behavior while clients are associated was
+  not exercised.
 
 ## Safe observation procedure
 

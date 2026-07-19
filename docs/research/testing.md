@@ -86,3 +86,37 @@ Sanitized diagnostics are written beneath the ignored
 commit that directory. A completed candidate run consumes the two-request
 allowance for each endpoint and must not be repeated merely to recover a
 missing artifact.
+
+## Explicit radio-toggle mutation validation
+
+`tests/hardware/radio-toggle.hardware.ts` is a separately authorized mutation
+harness. An ordinary `npm run test:hardware` run skips it, and it must never
+run by default or in CI. It is enabled only when both `ARCADYAN_PASSWORD` is
+non-empty and `ARCADYAN_RADIO_MUTATION=1` is supplied to a targeted Playwright
+invocation. Its route guard permits GETs, the normal login POST, and the
+single approved `POST /api/network/configuration/v2?set=ap`; any other
+request is aborted and fails the test.
+
+Run it only on a host wired to the gateway over Ethernet, and only when the
+radio experiment is explicitly approved:
+
+```sh
+ARCADYAN_RADIO_MUTATION=1 npx playwright test radio-toggle
+```
+
+The harness logs in through the UI, captures the Wi-Fi configuration in
+memory, selects the band with the fewest connected clients (tie: 5 GHz), and
+skips unless that band is currently enabled. It disables the radio through
+the normal edit UI, including the confirmation step, then polls sanitized
+readbacks until the change is confirmed — tolerating the gateway's transient
+HTTP 408s while the radio subsystem settles — and verifies that band
+membership and the other band's radio state did not change. It then waits
+for the application's own display to reflect the fresh state, re-enables the
+radio through the UI (enabling requires no confirmation), and confirms
+restoration through sanitized readbacks. If the UI-driven restore cannot
+complete, a fallback posts the in-memory original configuration back up to
+three times, strictly as restoration.
+
+The harness records only sanitized booleans, client counts, and step labels.
+Raw configuration bodies, tokens, and identifiers stay in memory and are
+never attached, logged, or committed.

@@ -15,6 +15,7 @@ export function Toggle({
       <Switch
         checked={checked}
         onChange={onChange}
+        aria-label={label}
         className={`${
           checked ? "bg-emerald-600" : "bg-slate-600"
         } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400`}

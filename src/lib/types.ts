@@ -52,8 +52,28 @@ export interface SsidConfig {
   wpaKey: string;
 }
 
+/**
+ * One band's radio configuration in the v2 Wi-Fi response. Field names and
+ * primitive types were confirmed against the live gateway; `isRadioEnabled`
+ * is the global radio on/off state for the band and is distinct from the
+ * per-SSID band-membership flags below.
+ */
+export interface WifiBandConfig {
+  airtimeFairness: boolean;
+  channel: string;
+  channelBandwidth: string;
+  isMUMIMOEnabled: boolean;
+  isRadioEnabled: boolean;
+  isWMMEnabled: boolean;
+  maxClients: number;
+  mode: string;
+  transmissionPower: string;
+}
+
 /** GET/POST /network/configuration/v2?get=ap / ?set=ap */
 export interface WifiConfig {
+  "2.4ghz": WifiBandConfig;
+  "5.0ghz": WifiBandConfig;
   ssids: SsidConfig[];
 }
 
