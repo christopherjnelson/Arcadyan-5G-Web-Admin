@@ -46,9 +46,15 @@ export function WifiCard({
       <dl>
         <DetailRow label="SSID">{ssid.ssidName}</DetailRow>
         <DetailRow label="2.4GHz Radio">
-          {ssid["2.4ghzSsid"] ? "enabled" : "disabled"}
+          {wifiConfig["2.4ghz"].isRadioEnabled ? "enabled" : "disabled"}
         </DetailRow>
         <DetailRow label="5 GHz Radio">
+          {wifiConfig["5.0ghz"].isRadioEnabled ? "enabled" : "disabled"}
+        </DetailRow>
+        <DetailRow label="2.4GHz SSID">
+          {ssid["2.4ghzSsid"] ? "enabled" : "disabled"}
+        </DetailRow>
+        <DetailRow label="5 GHz SSID">
           {ssid["5.0ghzSsid"] ? "enabled" : "disabled"}
         </DetailRow>
         <DetailRow

@@ -26,8 +26,8 @@ export function WifiSettings({
 }) {
   const [ssidName, setSsidName] = useState(ssid.ssidName);
   const [wpaKey, setWpaKey] = useState(ssid.wpaKey);
-  const [radio24, setRadio24] = useState(ssid["2.4ghzSsid"]);
-  const [radio5, setRadio5] = useState(ssid["5.0ghzSsid"]);
+  const [band24, setBand24] = useState(ssid["2.4ghzSsid"]);
+  const [band5, setBand5] = useState(ssid["5.0ghzSsid"]);
   const [broadcast, setBroadcast] = useState(ssid.isBroadcastEnabled);
   const [encryption, setEncryption] = useState<EncryptionVersion>(
     ssid.encryptionVersion,
@@ -45,8 +45,8 @@ export function WifiSettings({
           i === index
             ? {
                 ...entry,
-                "2.4ghzSsid": radio24,
-                "5.0ghzSsid": radio5,
+                "2.4ghzSsid": band24,
+                "5.0ghzSsid": band5,
                 encryptionMode: "AES",
                 encryptionVersion: encryption,
                 guest: false,
@@ -87,8 +87,8 @@ export function WifiSettings({
       />
 
       <div className="max-w-xs space-y-1">
-        <Toggle label="2.4GHz Radio" checked={radio24} onChange={setRadio24} />
-        <Toggle label="5GHz Radio" checked={radio5} onChange={setRadio5} />
+        <Toggle label="2.4GHz SSID" checked={band24} onChange={setBand24} />
+        <Toggle label="5GHz SSID" checked={band5} onChange={setBand5} />
         <Toggle
           label="Broadcast SSID"
           checked={broadcast}

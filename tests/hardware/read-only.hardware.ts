@@ -142,15 +142,27 @@ test("validates all read-only pages against observed API responses", async ({
 
     for (const [index, ssid] of wifi.ssids.entries()) {
       const network = card(page, `Network ${index + 1}`);
+      // Radio state is global per band and comes from the top-level flags;
+      // the per-SSID flags only express that network's band membership.
       await expectPrivateValueMatches(
         detailValue(network, "2.4GHz Radio"),
-        ssid["2.4ghzSsid"] ? "enabled" : "disabled",
-        `network ${index + 1} 2.4GHz state`,
+        wifi["2.4ghz"].isRadioEnabled ? "enabled" : "disabled",
+        `network ${index + 1} 2.4GHz radio state`,
       );
       await expectPrivateValueMatches(
         detailValue(network, "5 GHz Radio"),
+        wifi["5.0ghz"].isRadioEnabled ? "enabled" : "disabled",
+        `network ${index + 1} 5GHz radio state`,
+      );
+      await expectPrivateValueMatches(
+        detailValue(network, "2.4GHz SSID"),
+        ssid["2.4ghzSsid"] ? "enabled" : "disabled",
+        `network ${index + 1} 2.4GHz band membership`,
+      );
+      await expectPrivateValueMatches(
+        detailValue(network, "5 GHz SSID"),
         ssid["5.0ghzSsid"] ? "enabled" : "disabled",
-        `network ${index + 1} 5GHz state`,
+        `network ${index + 1} 5GHz band membership`,
       );
     }
 
