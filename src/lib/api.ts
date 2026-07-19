@@ -13,8 +13,10 @@ import type {
  * In development, Vite proxies "/api" to http://192.168.12.1/TMI/v1
  * (see vite.config.ts). In production the app is expected to be served
  * from a host that can reach the gateway on the LAN.
+ *
+ * Module-private: consumers use the endpoint function exports below.
  */
-export const api = axios.create({
+const api = axios.create({
   baseURL: "/api",
   timeout: 4000,
 });
