@@ -63,3 +63,26 @@ raw response, environment file, or capture is staged.
 The suite intentionally does not validate Wi-Fi saves/deletes, admin password
 reset, reboot, onboarding, schedules, authentication refresh, undocumented
 paths, unknown parameters, or any control inferred from newly observed fields.
+
+## Explicit candidate probe
+
+`tests/hardware/candidates.hardware.ts` is a separate opt-in investigation
+harness. An ordinary `npm run test:hardware` run skips it. It is enabled only
+when both `ARCADYAN_PASSWORD` is non-empty and
+`ARCADYAN_CANDIDATE_PROBE=1` is supplied to a targeted Playwright invocation.
+Its API GET allowlist contains only the known gateway health path and the three
+approved README candidates; path or query variations are aborted and fail the
+test. The normal login POST remains the only permitted non-GET request.
+
+The harness logs in once, stops application polling, keeps the token only in
+memory, uses four-second request timeouts, sends requests sequentially, waits
+at least three seconds between candidate requests, caps each candidate at two
+GETs, compares sanitized shapes only, and checks gateway health before probing
+and after each candidate pair. It never retries login or changes a path after
+an error status.
+
+Sanitized diagnostics are written beneath the ignored
+`.playwright-artifacts` directory and attached to the local result. Do not
+commit that directory. A completed candidate run consumes the two-request
+allowance for each endpoint and must not be repeated merely to recover a
+missing artifact.

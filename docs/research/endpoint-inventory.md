@@ -21,22 +21,38 @@ Source locations: [`src/lib/api.ts`](../../src/lib/api.ts),
 [`src/context/AuthContext.tsx`](../../src/context/AuthContext.tsx), and the
 pages/components named above.
 
-## Documented but inactive paths
+## README candidate probe
+
+The 2026-07-18 second read-only investigation issued two authenticated GETs to
+each approved candidate below. Every request received an HTTP response, the
+two sanitized parse results for each path were stable, and the known gateway
+health GET continued to respond after every candidate. The passing reporter
+discarded its in-memory attachment, so the exact status numbers, timings,
+Content-Type observations, and field/type trees are unavailable and must not
+be reconstructed. These are therefore recorded conservatively as `returned
+status only`, not as live-confirmed application endpoints.
+
+| Referenced path                      | Method | Evidence/status                                                                  |
+| ------------------------------------ | ------ | -------------------------------------------------------------------------------- |
+| `/TMI/v1/version`                    | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
+| `/TMI/v1/network/telemetry?get=sim`  | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
+| `/TMI/v1/network/telemetry?get=cell` | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
+
+No response-derived related path was retained or investigated.
+
+## Other documented but inactive paths
 
 These paths occur in the README but have no current caller. They were not
 called or probed in this task. A method shown as “unknown” is not inferred from
 the path name.
 
-| Referenced path                      | Method                                               | Evidence/status                                                                           |
-| ------------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `/TMI/v1/network/telemetry?get=sim`  | GET (query wording implies read, not live-confirmed) | README only                                                                               |
-| `/TMI/v1/network/telemetry?get=cell` | GET (query wording implies read, not live-confirmed) | README only                                                                               |
-| `/TMI/v1/auth/refresh`               | Unknown                                              | README only                                                                               |
-| `/TMI/v1/profile/schedules`          | Unknown                                              | README only                                                                               |
-| `/TMI/v1/version`                    | Unknown                                              | README only                                                                               |
-| `/TMI/v1/setup/onboard`              | Unknown                                              | README only; likely setup-related, so treat as potentially state-changing until evidenced |
-| `/auth.fcgi`                         | Unknown                                              | README only; outside `/TMI/v1`                                                            |
-| `/login_app.cgi?chk`                 | Unknown                                              | README only; outside `/TMI/v1`                                                            |
+| Referenced path             | Method  | Evidence/status                                                                           |
+| --------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `/TMI/v1/auth/refresh`      | Unknown | README only                                                                               |
+| `/TMI/v1/profile/schedules` | Unknown | README only                                                                               |
+| `/TMI/v1/setup/onboard`     | Unknown | README only; likely setup-related, so treat as potentially state-changing until evidenced |
+| `/auth.fcgi`                | Unknown | README only; outside `/TMI/v1`                                                            |
+| `/login_app.cgi?chk`        | Unknown | README only; outside `/TMI/v1`                                                            |
 
 The README spelling `/TMI/v1/gateway/get=all` is inconsistent with the active
 code and historical implementation, which both use

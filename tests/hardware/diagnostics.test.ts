@@ -29,6 +29,43 @@ describe("hardware validation safety helpers", () => {
     }
   });
 
+  it("can restrict API GETs to an exact candidate allowlist", () => {
+    const allowed = new Set([
+      "/api/gateway/?get=all",
+      "/api/version",
+      "/api/network/telemetry?get=sim",
+    ]);
+
+    expect(
+      isAllowedMethodAndPath(
+        "GET",
+        "http://127.0.0.1:5173/api/version",
+        allowed,
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedMethodAndPath(
+        "GET",
+        "http://127.0.0.1:5173/api/network/telemetry?get=cell",
+        allowed,
+      ),
+    ).toBe(false);
+    expect(
+      isAllowedMethodAndPath(
+        "GET",
+        "http://127.0.0.1:5173/api/version?guessed=true",
+        allowed,
+      ),
+    ).toBe(false);
+    expect(
+      isAllowedMethodAndPath(
+        "GET",
+        "http://127.0.0.1:5173/src/main.tsx",
+        allowed,
+      ),
+    ).toBe(true);
+  });
+
   it("keeps response field names and types without retaining values", () => {
     const source = {
       device: { serial: "sensitive-value", count: 3 },

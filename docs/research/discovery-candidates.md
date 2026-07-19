@@ -39,15 +39,24 @@ not establish semantics.
 | `bandSteering.isEnabled`                                                                   | boolean          | None        | Likely band-steering state; semantics not tested                    |
 | `clients[interface][].ipv6`                                                                | array of strings | None        | Sensitive client addressing; values not retained                    |
 
-## README-only paths
+## Investigated README candidates
 
-The paths for telemetry `get=sim`, telemetry `get=cell`, `version`, schedules,
-refresh, onboarding, `/auth.fcgi`, and `/login_app.cgi?chk` are evidenced only
-as README references. They are endpoint candidates, not observed response
-fields. This task does not call them because the current app flow does not.
-`version` and the telemetry queries may eventually be useful read-only sources,
-but even GET must wait for clear method/auth evidence from an already observed
-response or a separately agreed investigation.
+`/TMI/v1/version`, `/TMI/v1/network/telemetry?get=sim`, and
+`/TMI/v1/network/telemetry?get=cell` each returned two HTTP responses during
+the 2026-07-18 exact-allowlist probe, and each pair had a stable sanitized
+parse result. The reporter did not retain the diagnostic attachment, so no
+field paths or types can be classified without exceeding the two-request cap.
+They remain possible read-only sources, not confirmed useful sources; a GET
+response alone does not establish safety or semantics.
+
+No response-derived related path was retained. No additional endpoint was
+investigated.
+
+## Remaining README-only paths
+
+The paths for schedules, refresh, onboarding, `/auth.fcgi`, and
+`/login_app.cgi?chk` remain README references only. They are endpoint
+candidates, not observed response fields, and were not called by this task.
 
 ## Classifying fields after a hardware run
 

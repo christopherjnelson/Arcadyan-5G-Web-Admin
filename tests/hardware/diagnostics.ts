@@ -6,6 +6,7 @@ import type {
   Response,
   TestInfo,
 } from "@playwright/test";
+import { mkdir, writeFile } from "node:fs/promises";
 
 type JsonShape =
   | "null"
@@ -80,21 +81,33 @@ function safeConsoleMessage(message: ConsoleMessage): string {
 export function isAllowedMethodAndPath(
   method: string,
   rawUrl: string,
+  allowedApiGetPaths?: ReadonlySet<string>,
 ): boolean {
-  if (method === "GET") return true;
   const url = new URL(rawUrl);
+  if (method === "GET") {
+    if (!allowedApiGetPaths || !url.pathname.startsWith("/api/")) return true;
+    return allowedApiGetPaths.has(`${url.pathname}${url.search}`);
+  }
   return (
     method === "POST" && url.pathname === "/api/auth/login" && url.search === ""
   );
 }
 
-function isAllowedRequest(request: Request): boolean {
-  return isAllowedMethodAndPath(request.method(), request.url());
+function isAllowedRequest(
+  request: Request,
+  allowedApiGetPaths?: ReadonlySet<string>,
+): boolean {
+  return isAllowedMethodAndPath(
+    request.method(),
+    request.url(),
+    allowedApiGetPaths,
+  );
 }
 
 export async function installReadOnlyDiagnostics(
   context: BrowserContext,
   page: Page,
+  allowedApiGetPaths?: ReadonlySet<string>,
 ): Promise<BrowserDiagnostics> {
   const diagnostics: BrowserDiagnostics = {
     console: [],
@@ -106,7 +119,7 @@ export async function installReadOnlyDiagnostics(
 
   await context.route("**/*", async (route) => {
     const request = route.request();
-    if (!isAllowedRequest(request)) {
+    if (!isAllowedRequest(request, allowedApiGetPaths)) {
       const label = `${request.method()} ${safePath(request.url())}`;
       diagnostics.blockedMutations.push(label);
       blockedRequests.add(request);
@@ -165,8 +178,11 @@ export async function attachDiagnostics(
   diagnostics: BrowserDiagnostics,
   testInfo: TestInfo,
 ): Promise<void> {
+  const path = testInfo.outputPath("sanitized-browser-diagnostics.json");
+  await mkdir(testInfo.outputDir, { recursive: true });
+  await writeFile(path, JSON.stringify(diagnostics, null, 2));
   await testInfo.attach("sanitized-browser-diagnostics", {
-    body: Buffer.from(JSON.stringify(diagnostics, null, 2)),
+    path,
     contentType: "application/json",
   });
 }

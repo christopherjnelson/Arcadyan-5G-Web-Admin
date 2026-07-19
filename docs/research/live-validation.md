@@ -48,6 +48,32 @@ mutability of any field. The Content-Type value above is what the browser saw;
 because the Vite fallback supplies it when absent, it does not prove the modem
 firmware sent that header.
 
+## Second README-candidate investigation
+
+On 2026-07-18, after the direct known gateway GET returned HTTP 200 and the
+existing guarded hardware suite passed, an opt-in exact-allowlist probe used
+normal UI login and issued two sequential authenticated GETs to each of the
+three approved README candidates. It waited at least three seconds between
+candidate requests and rechecked the known gateway GET before advancing. All
+six candidate requests received HTTP responses, each pair had the same
+sanitized parse result, every health recheck responded, and no unapproved
+request was attempted.
+
+The list reporter discarded the run's in-memory diagnostic attachment after
+the pass. Exact status numbers, elapsed times, browser-visible Content-Type,
+top-level shapes, field names, primitive types, and nullability therefore
+cannot be documented from retained evidence. No candidate is called safe or
+live-confirmed, and no field classification is made. The diagnostics helper
+now writes the same sanitized attachment to the ignored Playwright result
+directory so a future separately authorized run would retain it.
+
+| Endpoint                                      | Classification       | Retained evidence                                       |
+| --------------------------------------------- | -------------------- | ------------------------------------------------------- |
+| `GET /TMI/v1/version`                         | Returned status only | Two responses; stable sanitized parse result            |
+| `GET /TMI/v1/network/telemetry?get=sim`       | Returned status only | Two responses; stable sanitized parse result            |
+| `GET /TMI/v1/network/telemetry?get=cell`      | Returned status only | Two responses; stable sanitized parse result            |
+| `GET /TMI/v1/gateway/?get=all` health recheck | Live HTTP response   | Responded before probing and after every candidate pair |
+
 ## Safe observation procedure
 
 After a successful run, inspect the local `sanitized-browser-diagnostics`
