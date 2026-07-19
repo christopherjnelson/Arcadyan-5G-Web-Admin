@@ -24,6 +24,16 @@ The dev server proxies `/api/*` to `http://192.168.12.1/TMI/v1/*` (see
 - `npm run lint` — run ESLint
 - `npm run format` — run Prettier
 
+## Production
+
+The `/api` → `http://192.168.12.1/TMI/v1` proxy is **development-only**:
+it lives in `server.proxy` (`vite.config.ts`), which applies only to
+`vite dev`. `npm run preview` serves the built assets for verification
+but does **not** proxy API requests, and statically hosted `dist/`
+output has no proxy at all. A production deployment must reverse-proxy
+`/api/*` → `http://192.168.12.1/TMI/v1/*` (e.g. via nginx or Caddy on
+the gateway's LAN), or every API call will 404.
+
 # Tech Stack
 
 - React 19 + TypeScript, built with Vite
