@@ -21,8 +21,14 @@ The dev server proxies `/api/*` to `http://192.168.12.1/TMI/v1/*` (see
 - `npm run build` — type-check and produce a production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm test` — run the Vitest suite
+- `npm run test:hardware` — run the opt-in, read-only Playwright gateway suite
 - `npm run lint` — run ESLint
 - `npm run format` — run Prettier
+
+Hardware validation is skipped unless `ARCADYAN_PASSWORD` is present. See
+[`docs/research/testing.md`](docs/research/testing.md) for the safety boundary,
+local diagnostics, and sensitive-data precautions. The endpoint audit and UI
+mapping live in [`docs/research/`](docs/research/).
 
 ## Production
 
