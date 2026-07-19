@@ -69,3 +69,27 @@ Source: `GET /TMI/v1/network/telemetry/?get=clients`, consumed by
 The password form and reboot controls do not display response data. They call
 state-changing endpoints and are intentionally untouched by the hardware
 suite. Login consumes `auth.token` internally but never displays it.
+
+## Live mapping status
+
+The 2026-07-18 guarded hardware run live-confirmed the response field names and
+primitive types for all three read-only sources. It also compared the following
+rendered values directly with the same live response, without retaining either
+value:
+
+- Signal: gateway model, firmware, and RSRP for both present signal blocks.
+- Wi-Fi: the displayed 2.4GHz and 5GHz enabled/disabled state for every
+  `ssids[]` entry.
+- System: the displayed client count for all three interface arrays.
+
+The remaining mappings in the tables are source-confirmed and their fields were
+present with the documented primitive types, but their rendered values were not
+individually compared by the harness. Device cards remained collapsed, so no
+client identity was exposed during validation. Both `signal["4g"]` and
+`signal["5g"]` were objects in this observation; behavior when either is absent
+or null remains unobserved.
+
+The v2 Wi-Fi response contained both the per-SSID band booleans used by the UI
+and top-level `2.4ghz.isRadioEnabled` and `5.0ghz.isRadioEnabled` booleans. Live
+presence does not establish that the per-SSID fields represent global radio
+state, so the current “Radio” label remains a semantic assumption.

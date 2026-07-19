@@ -2,34 +2,30 @@
 
 ## Current run status
 
-Authenticated validation was attempted through the normal login UI on
-2026-07-18 with the required credential present in the process environment.
-The browser issued exactly the allowed `POST /TMI/v1/auth/login`, but the
-request received no HTTP response before the application's approximately
-four-second Axios timeout aborted it. Repeated suite runs reproduced the same
-pre-response timeout, including one run with a longer Playwright test timeout.
-No authenticated page or known authenticated GET was reached, and the mutation
-guard observed no other state-changing request.
+Authenticated validation completed through the normal login UI on 2026-07-18.
+The guarded Playwright run passed in 1.8 seconds, visited Signal, WiFi, and
+System, and observed no console warning/error or attempted state-changing
+request. It emitted seven API requests: one login POST and two GETs to each of
+the three active read-only endpoints. Every API request returned HTTP 200; the
+login took 19 ms and the GETs took 27--174 ms. The duplicate GETs occurred
+during the development render and had identical shapes.
 
-The earlier unauthenticated evidence remains unchanged: one request to the
-already-known gateway GET returned HTTP 200 and its response was discarded;
-two later direct attempts received no bytes before 4- and 10-second timeouts.
-No raw modem response, header, token, cookie, credential, identifier,
-screenshot, trace, HAR, or capture was retained. Because the authenticated run
-produced no response body, it supplied no schema, UI-mapping, or unused-field
-evidence; `ui-api-map.md` and `discovery-candidates.md` therefore remain
-unchanged.
+The sanitized diagnostic retained only paths, status, browser-visible
+Content-Type, durations, and field names/types. It retained no raw modem value,
+request body, header, token, cookie, credential, identifier, screenshot, trace,
+HAR, or capture. The earlier timeout observations remain useful operational
+history, but they do not describe this successful run.
 
 Run the suite as described in [testing.md](testing.md), then record only
 sanitized observations in the table below. The local Playwright attachment is
 the detailed source of field names/types and should not be committed.
 
-| Endpoint                                      | Live status                                                            | Content-Type                         | Top-level shape                                           | UI fields checked                    | Polling                            | Confidence                                             |
-| --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------ |
-| `POST /TMI/v1/auth/login`                     | Request emitted; no HTTP response before client timeout                | Not observed                         | Not observed; body deliberately excluded from diagnostics | Authentication only                  | Initial login and only after a 401 | Request path/method live-confirmed; schema static only |
-| `GET /TMI/v1/gateway/?get=all`                | HTTP 200 once without authorization; two subsequent transient timeouts | Missing on completed direct response | Not inspected; expected object: `device`, `signal`        | Not exercised through UI             | 5 seconds after completion         | Endpoint/status observed; schema/UI static only        |
-| `GET /TMI/v1/network/configuration/v2?get=ap` | Not run                                                                | Not observed                         | Expected object: `ssids` array                            | Per-network 2.4GHz and 5GHz booleans | 20 seconds after completion        | Static only                                            |
-| `GET /TMI/v1/network/telemetry/?get=clients`  | Not run                                                                | Not observed                         | Expected object: `clients` object                         | Counts for all three interfaces      | 5 seconds after completion         | Static only                                            |
+| Endpoint                                      | Live status                     | Browser-visible Content-Type      | Observed top-level shape                    | UI fields checked                                        | Polling                            | Confidence                  |
+| --------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------- | ---------------------------------- | --------------------------- |
+| `POST /TMI/v1/auth/login`                     | HTTP 200 in 19 ms               | `application/json; charset=utf-8` | Deliberately excluded from diagnostics      | Authentication only                                      | Initial login and only after a 401 | Live endpoint/status        |
+| `GET /TMI/v1/gateway/?get=all`                | Two HTTP 200s in 170 and 174 ms | `application/json; charset=utf-8` | `device`, `signal`, and `time` objects      | Model, firmware, and RSRP for both present signal blocks | 5 seconds after completion         | Live schema and selected UI |
+| `GET /TMI/v1/network/configuration/v2?get=ap` | Two HTTP 200s in 58 and 61 ms   | `application/json; charset=utf-8` | `2.4ghz`, `5.0ghz`, `bandSteering`, `ssids` | Every SSID's 2.4GHz and 5GHz displayed state             | 20 seconds after completion        | Live schema and selected UI |
+| `GET /TMI/v1/network/telemetry/?get=clients`  | Two HTTP 200s in 27 and 31 ms   | `application/json; charset=utf-8` | `clients` object                            | Counts for all three interfaces                          | 5 seconds after completion         | Live schema and selected UI |
 
 ## Discrepancies to validate live
 
@@ -38,14 +34,19 @@ the detailed source of field names/types and should not be committed.
   of that type does not prove the firmware itself supplied it.
 - README uses `/gateway/get=all`; runtime code uses `/gateway/?get=all`.
 - Wi-Fi booleans named `2.4ghzSsid` and `5.0ghzSsid` are presented as radio
-  state. The historical implementation instead referenced top-level
-  `isRadioEnabled` fields on an older endpoint shape.
+  state. The live v2 response also contains top-level `2.4ghz.isRadioEnabled`
+  and `5.0ghz.isRadioEnabled`; the run did not establish that these global
+  flags and the per-SSID flags have equivalent semantics.
 - The declared TypeScript shapes do not prove runtime type, nullability, or
   field presence. The hardware run must specifically note strings in place of
   numbers/booleans, nulls, missing keys, and additional keys.
 
-The 2026-07-18 run did not confirm or disprove any of these discrepancies. It
-stopped at the login timeout before an authenticated response was available.
+The live run confirmed `/gateway/?get=all`, confirmed that the per-SSID flags
+are booleans and match what the current UI displays, and confirmed the primitive
+types documented in `discovery-candidates.md`. It did not test the meaning or
+mutability of any field. The Content-Type value above is what the browser saw;
+because the Vite fallback supplies it when absent, it does not prove the modem
+firmware sent that header.
 
 ## Safe observation procedure
 
