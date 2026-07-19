@@ -3,6 +3,13 @@
 
 # testing
 /coverage
+/playwright-report
+/.playwright-artifacts
+/test-results
+*.zip
+*.har
+*.pcap
+*.pcapng
 
 # production
 /dist
@@ -12,6 +19,10 @@
 *.local
 .env
 .env.*
+
+# local modem diagnostics / raw responses
+/api-responses
+/browser-diagnostics
 
 npm-debug.log*
 yarn-debug.log*
