@@ -45,13 +45,12 @@ function MetricRow({
   info: { title: string; body: string };
 }) {
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-1 text-sm">
-      <dt className="font-semibold text-slate-300">{label}</dt>
-      <dd>{value}</dd>
-      <dd>
-        <InfoPopover title={info.title}>{info.body}</InfoPopover>
-      </dd>
-    </div>
+    <DetailRow
+      label={label}
+      trailing={<InfoPopover title={info.title}>{info.body}</InfoPopover>}
+    >
+      {value}
+    </DetailRow>
   );
 }
 
@@ -74,17 +73,13 @@ function SignalCard({
         </div>
       ) : (
         <dl>
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-1 text-sm">
-            <dt className="font-semibold text-slate-300">Signal</dt>
-            <dd>
-              <ProgressBar
-                percent={signalPercent(signal?.bars)}
-                colorClass={signalColor(signal?.bars)}
-                label={signalLabel(signal?.bars)}
-              />
-            </dd>
-            <dd />
-          </div>
+          <DetailRow label="Signal">
+            <ProgressBar
+              percent={signalPercent(signal?.bars)}
+              colorClass={signalColor(signal?.bars)}
+              label={signalLabel(signal?.bars)}
+            />
+          </DetailRow>
           <MetricRow
             label="Band"
             value={formatBands(signal?.bands)}

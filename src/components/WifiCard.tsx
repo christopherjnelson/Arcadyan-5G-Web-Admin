@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { Alert } from "./ui/Alert";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { DetailRow } from "./ui/DetailRow";
+import { VisibilityToggle } from "./ui/VisibilityToggle";
 import { setWifiConfig } from "../lib/api";
 import type { SsidConfig, WifiConfig } from "../lib/types";
 import { WifiSettings } from "./WifiSettings";
@@ -51,26 +51,18 @@ export function WifiCard({
         <DetailRow label="5 GHz Radio">
           {ssid["5.0ghzSsid"] ? "enabled" : "disabled"}
         </DetailRow>
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-1 text-sm">
-          <dt className="font-semibold text-slate-300">Key</dt>
-          <dd className="break-all text-slate-100">
-            {showKey ? ssid.wpaKey : "**********"}
-          </dd>
-          <dd>
-            <button
-              type="button"
-              aria-label={showKey ? "Hide key" : "Show key"}
-              onClick={() => setShowKey((v) => !v)}
-              className="text-slate-400 transition-colors hover:text-amber-400"
-            >
-              {showKey ? (
-                <Eye className="h-4 w-4" />
-              ) : (
-                <EyeOff className="h-4 w-4" />
-              )}
-            </button>
-          </dd>
-        </div>
+        <DetailRow
+          label="Key"
+          trailing={
+            <VisibilityToggle
+              visible={showKey}
+              onToggle={() => setShowKey((v) => !v)}
+              subject="key"
+            />
+          }
+        >
+          {showKey ? ssid.wpaKey : "**********"}
+        </DetailRow>
         <DetailRow label="Encryption">
           {`${ssid.encryptionVersion} with ${ssid.encryptionMode}`}
         </DetailRow>

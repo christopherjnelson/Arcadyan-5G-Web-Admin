@@ -1,11 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { DetailRow } from "../components/ui/DetailRow";
 import { DeviceCard } from "../components/DeviceCard";
 import { Spinner } from "../components/ui/Spinner";
 import { TextInput } from "../components/ui/TextInput";
+import { VisibilityToggle } from "../components/ui/VisibilityToggle";
 import { useAuth } from "../hooks/useAuth";
 import { usePolling } from "../hooks/usePolling";
 import { useRequireAuth } from "../hooks/useRequireAuth";
@@ -17,25 +18,6 @@ const INTERFACE_LABELS: Record<ClientInterface, string> = {
   "5.0ghz": "5GHz",
   ethernet: "Ethernet",
 };
-
-function PasswordVisibilityToggle({
-  visible,
-  onToggle,
-}: {
-  visible: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={visible ? "Hide password" : "Show password"}
-      onClick={onToggle}
-      className="hover:text-amber-400"
-    >
-      {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-    </button>
-  );
-}
 
 export function SystemPage() {
   const user = useRequireAuth();
@@ -145,9 +127,10 @@ export function SystemPage() {
               }
               onChange={(e) => setCurrentPassword(e.target.value)}
               trailing={
-                <PasswordVisibilityToggle
+                <VisibilityToggle
                   visible={showCurrent}
                   onToggle={() => setShowCurrent((v) => !v)}
+                  subject="password"
                 />
               }
             />
@@ -163,9 +146,10 @@ export function SystemPage() {
               invalid={newPassword.length > 0 && newPassword.length < 8}
               onChange={(e) => setNewPassword(e.target.value)}
               trailing={
-                <PasswordVisibilityToggle
+                <VisibilityToggle
                   visible={showNew}
                   onToggle={() => setShowNew((v) => !v)}
+                  subject="password"
                 />
               }
             />
@@ -211,15 +195,9 @@ export function SystemPage() {
             <>
               <dl>
                 {clientEntries.map(([iface, devices]) => (
-                  <div
-                    key={iface}
-                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-1 text-sm"
-                  >
-                    <dt className="font-semibold text-slate-300">
-                      {INTERFACE_LABELS[iface]}
-                    </dt>
-                    <dd>{devices.length}</dd>
-                  </div>
+                  <DetailRow key={iface} label={INTERFACE_LABELS[iface]}>
+                    {devices.length}
+                  </DetailRow>
                 ))}
               </dl>
               <div className="mt-4">
