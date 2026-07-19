@@ -2,10 +2,16 @@ import { useEffect, useRef } from "react";
 
 /**
  * Invoke `callback` immediately and then every `intervalMs` while `active`.
- * The interval is cleared on unmount or when any input changes.
+ *
+ * Each tick waits for the previous callback to settle before the next one
+ * is scheduled, so polls never overlap — even when a request chain (with
+ * the 401 re-auth retry) outlasts the interval. Overlapping chains could
+ * resolve out of order and let older data overwrite fresher state. A
+ * rejected callback never breaks the schedule, and no further ticks are
+ * scheduled once the hook is cleaned up.
  */
 export function usePolling(
-  callback: () => void,
+  callback: () => Promise<unknown> | void,
   intervalMs: number,
   active = true,
 ): void {
@@ -17,8 +23,25 @@ export function usePolling(
 
   useEffect(() => {
     if (!active) return;
-    savedCallback.current();
-    const id = setInterval(() => savedCallback.current(), intervalMs);
-    return () => clearInterval(id);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function tick() {
+      try {
+        await savedCallback.current();
+      } catch {
+        // Callbacks are expected to handle their own errors; a rejection
+        // must never break the polling schedule.
+      }
+      if (!cancelled) {
+        timer = setTimeout(() => void tick(), intervalMs);
+      }
+    }
+
+    void tick();
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) clearTimeout(timer);
+    };
   }, [intervalMs, active]);
 }

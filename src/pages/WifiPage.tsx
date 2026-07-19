@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Spinner } from "../components/ui/Spinner";
 import { WifiCard } from "../components/WifiCard";
 import { usePolling } from "../hooks/usePolling";
@@ -9,13 +9,18 @@ import type { WifiConfig } from "../lib/types";
 export function WifiPage() {
   const user = useRequireAuth();
   const [wifiConfig, setWifiConfig] = useState<WifiConfig | null>(null);
+  // Sequence guard so a slower, older response can never overwrite newer
+  // data (e.g. when a post-save refresh overlaps an in-flight poll).
+  const requestSeq = useRef(0);
 
-  const refresh = useCallback(() => {
-    getWifiConfig()
-      .then(setWifiConfig)
-      .catch(() => {
-        // Transient poll failures keep the last good data on screen.
-      });
+  const refresh = useCallback(async () => {
+    const seq = ++requestSeq.current;
+    try {
+      const config = await getWifiConfig();
+      if (seq === requestSeq.current) setWifiConfig(config);
+    } catch {
+      // Transient poll failures keep the last good data on screen.
+    }
   }, []);
 
   usePolling(refresh, 20000, user !== null);

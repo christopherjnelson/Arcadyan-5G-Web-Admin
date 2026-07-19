@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Card } from "../components/ui/Card";
 import { DetailRow } from "../components/ui/DetailRow";
 import { InfoPopover } from "../components/ui/InfoPopover";
@@ -114,15 +114,20 @@ function SignalCard({
 export function SignalPage() {
   const user = useRequireAuth();
   const [gatewayInfo, setGatewayInfo] = useState<GatewayInfo | null>(null);
+  // Sequence guard so a slower, older response can never overwrite newer
+  // data (e.g. when a manual refresh overlaps an in-flight poll).
+  const requestSeq = useRef(0);
 
   usePolling(
-    () => {
-      getGatewayInfo()
-        .then(setGatewayInfo)
-        .catch(() => {
-          // Transient poll failures keep the last good data on screen.
-        });
-    },
+    useCallback(async () => {
+      const seq = ++requestSeq.current;
+      try {
+        const info = await getGatewayInfo();
+        if (seq === requestSeq.current) setGatewayInfo(info);
+      } catch {
+        // Transient poll failures keep the last good data on screen.
+      }
+    }, []),
     5000,
     user !== null,
   );

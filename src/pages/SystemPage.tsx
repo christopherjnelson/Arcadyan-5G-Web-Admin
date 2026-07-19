@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/ui/Button";
@@ -42,6 +42,9 @@ export function SystemPage() {
   const { user: authUser, login, logout } = useAuth();
   const [clients, setClients] = useState<ClientsResponse | null>(null);
   const [showDevices, setShowDevices] = useState(false);
+  // Sequence guard so a slower, older poll response can never overwrite
+  // newer data.
+  const requestSeq = useRef(0);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -55,12 +58,14 @@ export function SystemPage() {
   } | null>(null);
 
   usePolling(
-    useCallback(() => {
-      getClients()
-        .then(setClients)
-        .catch(() => {
-          // Transient poll failures keep the last good data on screen.
-        });
+    useCallback(async () => {
+      const seq = ++requestSeq.current;
+      try {
+        const response = await getClients();
+        if (seq === requestSeq.current) setClients(response);
+      } catch {
+        // Transient poll failures keep the last good data on screen.
+      }
     }, []),
     5000,
     user !== null,
