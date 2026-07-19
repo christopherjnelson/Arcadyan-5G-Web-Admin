@@ -35,18 +35,18 @@ Source: `GET /TMI/v1/network/configuration/v2?get=ap`, consumed by
 [`WifiSettings.tsx`](../../src/components/WifiSettings.tsx). One card is
 rendered per `ssids[]` entry.
 
-| UI field         | Response property                     | Transformation/assumption                                                                                        |
-| ---------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Network number   | `ssids[]` array index                 | One-based display; index 0 cannot be deleted                                                                     |
-| SSID             | `ssids[i].ssidName`                   | Displayed verbatim; sensitive                                                                                    |
-| 2.4GHz Radio     | `2.4ghz.isRadioEnabled`               | Boolean maps to enabled/disabled; global per-band radio state, repeated on every card                            |
-| 5 GHz Radio      | `5.0ghz.isRadioEnabled`               | Boolean maps to enabled/disabled; global per-band radio state, repeated on every card                            |
-| 2.4GHz SSID      | `ssids[i]["2.4ghzSsid"]`              | Boolean maps to enabled/disabled; this SSID's membership on the 2.4GHz band, not radio state                     |
-| 5 GHz SSID       | `ssids[i]["5.0ghzSsid"]`              | Boolean maps to enabled/disabled; this SSID's membership on the 5GHz band, not radio state                       |
-| Key              | `ssids[i].wpaKey`                     | Masked by default, displayed verbatim after user action; highly sensitive                                        |
-| Encryption       | `encryptionVersion`, `encryptionMode` | Joined as `<version> with <mode>`                                                                                |
-| Hidden           | `isBroadcastEnabled`                  | Inverted: broadcast enabled → `false`, disabled → `true`                                                         |
-| Edit form values | Same SSID fields                      | Band toggles edit the per-SSID membership flags, not radio state; Save sends a full state-changing configuration |
+| UI field         | Response property                       | Transformation/assumption                                                                                                                                      |
+| ---------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Network number   | `ssids[]` array index                   | One-based display; index 0 cannot be deleted                                                                                                                   |
+| SSID             | `ssids[i].ssidName`                     | Displayed verbatim; sensitive                                                                                                                                  |
+| 2.4GHz Radio     | `2.4ghz.isRadioEnabled`                 | Boolean maps to enabled/disabled; global per-band radio state, repeated on every card                                                                          |
+| 5 GHz Radio      | `5.0ghz.isRadioEnabled`                 | Boolean maps to enabled/disabled; global per-band radio state, repeated on every card                                                                          |
+| 2.4GHz SSID      | `ssids[i]["2.4ghzSsid"]`                | Boolean maps to enabled/disabled; this SSID's membership on the 2.4GHz band, not radio state                                                                   |
+| 5 GHz SSID       | `ssids[i]["5.0ghzSsid"]`                | Boolean maps to enabled/disabled; this SSID's membership on the 5GHz band, not radio state                                                                     |
+| Key              | `ssids[i].wpaKey`                       | Masked by default, displayed verbatim after user action; highly sensitive                                                                                      |
+| Encryption       | `encryptionVersion`, `encryptionMode`   | Joined as `<version> with <mode>`                                                                                                                              |
+| Hidden           | `isBroadcastEnabled`                    | Inverted: broadcast enabled → `false`, disabled → `true`                                                                                                       |
+| Edit form values | Same SSID fields + top-level band flags | Global radio toggles write only `2.4ghz`/`5.0ghz.isRadioEnabled`; per-SSID toggles write only `2.4ghzSsid`/`5.0ghzSsid`; Save sends the complete configuration |
 
 `guest` is typed and preserved on untouched entries but is not displayed. An
 edited entry is forced to `guest: false`.
@@ -97,5 +97,10 @@ radio-state issue resolved their relationship: issue #4 reported both top-level
 flags `false` while the UI showed the radios enabled, proving the per-SSID
 flags can be `true` while the radios are off. The UI therefore displays radio
 state from the top-level flags and presents the per-SSID flags only as band
-membership. The UI has no radio on/off control; editing radio state would
-require separately approved state-changing evidence.
+membership. A separately authorized 2026-07-18 single-band mutation (see
+[live-validation.md](live-validation.md)) confirmed the top-level flags are
+writable through the existing `set=ap` endpoint, so the edit form now exposes
+them as global radio controls alongside the per-SSID membership toggles. Save
+posts the complete configuration and spreads the fetched objects so
+unmodeled properties (such as the observed top-level `bandSteering`) are
+preserved.

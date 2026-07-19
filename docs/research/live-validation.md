@@ -93,6 +93,49 @@ and after each endpoint pair. As elsewhere in this document, the Content-Type
 is browser-visible and may have been supplied by the Vite fallback rather than
 the modem.
 
+## Radio-state mutation experiment
+
+On 2026-07-18, a separately authorized single-band mutation validated whether
+the top-level `isRadioEnabled` flags are writable through
+`POST /TMI/v1/network/configuration/v2?set=ap`. The test host reached the
+gateway over wired Ethernet (its Wi-Fi interface was down), so no radio
+change could disconnect it. A pre-check of `get=clients` showed zero clients
+on both bands, so no client device was disrupted.
+
+Sanitized sequence:
+
+1. Authenticated via `POST /TMI/v1/auth/login` (token kept in memory only).
+2. `GET ?get=clients`: 0 clients on each band; selected `5.0ghz` by the
+   deterministic tie-break.
+3. `GET ?get=ap`: recorded only `5.0ghz.isRadioEnabled=true` and the single
+   SSID's membership booleans (both `true`).
+4. `POST ?set=ap` with the complete configuration and only
+   `5.0ghz.isRadioEnabled` flipped to `false`: HTTP 200.
+5. After a 5 s settle the readback GET transiently returned HTTP 408; a retry
+   confirmed `5.0ghz.isRadioEnabled=false`. The 2.4 GHz radio state and all
+   membership booleans were unchanged.
+6. Restoration `POST ?set=ap` of the original configuration: HTTP 200.
+7. `get=ap` answered transient HTTP 408s for roughly 15--30 s while the radio
+   subsystem settled, then recovered. The final readback confirmed both radios
+   `true` and membership unchanged: the original state was fully restored.
+
+Conclusions:
+
+- `5.0ghz.isRadioEnabled` is writable through the existing `set=ap` endpoint
+  when the complete configuration is posted. This is the same request shape
+  the application already sends, so no new endpoint was needed.
+- Operational side effect: for a short window after a radio-state change,
+  `get=ap` can answer HTTP 408. Callers should treat this as "settling",
+  retry reads, and avoid further mutations until reads succeed again.
+- Disabling the radio that carries a client's connection drops that client.
+  The edit UI therefore warns and requires explicit confirmation before
+  disabling a radio, and adds a stronger guard (an explicit acknowledgment)
+  before a submission that would turn off both radios.
+- Remaining uncertainty: a single KVD21 unit and firmware version was
+  observed, and only the 5 GHz band was toggled. The 2.4 GHz flag is assumed
+  symmetric but was not exercised; behavior while clients are associated was
+  not exercised.
+
 ## Safe observation procedure
 
 After a successful run, inspect the local `sanitized-browser-diagnostics`
