@@ -23,20 +23,26 @@ pages/components named above.
 
 ## README candidate probe
 
-The 2026-07-18 second read-only investigation issued two authenticated GETs to
-each approved candidate below. Every request received an HTTP response, the
-two sanitized parse results for each path were stable, and the known gateway
-health GET continued to respond after every candidate. The passing reporter
-discarded its in-memory attachment, so the exact status numbers, timings,
-Content-Type observations, and field/type trees are unavailable and must not
-be reconstructed. These are therefore recorded conservatively as `returned
-status only`, not as live-confirmed application endpoints.
+The 2026-07-18 follow-up read-only investigation issued two authenticated GETs
+to each approved candidate below. Persistent ignored diagnostics worked: they
+retained status, elapsed time, browser-visible Content-Type, and value-free
+field/type structure after the passing list reporter exited. Every request was
+HTTP 200, each endpoint pair had an identical schema, and the known gateway
+health GET continued to return HTTP 200 after every pair. These observations
+confirm the responses and their structures, but do not establish field
+semantics or authorize application use.
 
-| Referenced path                      | Method | Evidence/status                                                                  |
-| ------------------------------------ | ------ | -------------------------------------------------------------------------------- |
-| `/TMI/v1/version`                    | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
-| `/TMI/v1/network/telemetry?get=sim`  | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
-| `/TMI/v1/network/telemetry?get=cell` | GET    | Returned status only, twice; exact status and sanitized schema were not retained |
+| Referenced path                      | Method | Sanitized live evidence                                                            |
+| ------------------------------------ | ------ | ---------------------------------------------------------------------------------- |
+| `/TMI/v1/version`                    | GET    | Two HTTP 200s in 9--10 ms; top-level object containing numeric `version`           |
+| `/TMI/v1/network/telemetry?get=sim`  | GET    | Two HTTP 200s in 9--16 ms; top-level object containing a structured `sim` object   |
+| `/TMI/v1/network/telemetry?get=cell` | GET    | Two HTTP 200s in 24--57 ms; top-level object containing a structured `cell` object |
+
+All three exposed `application/json; charset=utf-8` to the browser. The Vite
+proxy supplies that value when the gateway omits Content-Type, so this does not
+prove the modem sent the header. See `discovery-candidates.md` for the complete
+value-free paths, types, null observations, array structures, and cautious
+classifications.
 
 No response-derived related path was retained or investigated.
 

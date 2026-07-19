@@ -48,7 +48,7 @@ mutability of any field. The Content-Type value above is what the browser saw;
 because the Vite fallback supplies it when absent, it does not prove the modem
 firmware sent that header.
 
-## Second README-candidate investigation
+## README-candidate investigations
 
 On 2026-07-18, after the direct known gateway GET returned HTTP 200 and the
 existing guarded hardware suite passed, an opt-in exact-allowlist probe used
@@ -59,20 +59,32 @@ six candidate requests received HTTP responses, each pair had the same
 sanitized parse result, every health recheck responded, and no unapproved
 request was attempted.
 
-The list reporter discarded the run's in-memory diagnostic attachment after
-the pass. Exact status numbers, elapsed times, browser-visible Content-Type,
-top-level shapes, field names, primitive types, and nullability therefore
-cannot be documented from retained evidence. No candidate is called safe or
-live-confirmed, and no field classification is made. The diagnostics helper
-now writes the same sanitized attachment to the ignored Playwright result
-directory so a future separately authorized run would retain it.
+That run's list reporter discarded its in-memory attachment. A separately
+authorized follow-up on the same date first received HTTP 200 from the known
+gateway health GET, then passed the normal hardware suite, and ran the existing
+candidate harness once. The persistent ignored diagnostic survived the passing
+reporter and supplied the evidence below. It contained no response values.
 
-| Endpoint                                      | Classification       | Retained evidence                                       |
-| --------------------------------------------- | -------------------- | ------------------------------------------------------- |
-| `GET /TMI/v1/version`                         | Returned status only | Two responses; stable sanitized parse result            |
-| `GET /TMI/v1/network/telemetry?get=sim`       | Returned status only | Two responses; stable sanitized parse result            |
-| `GET /TMI/v1/network/telemetry?get=cell`      | Returned status only | Two responses; stable sanitized parse result            |
-| `GET /TMI/v1/gateway/?get=all` health recheck | Live HTTP response   | Responded before probing and after every candidate pair |
+| Endpoint                                     | Status and elapsed time         | Browser-visible Content-Type      | Sanitized top-level shape                         |
+| -------------------------------------------- | ------------------------------- | --------------------------------- | ------------------------------------------------- |
+| `GET /TMI/v1/version`                        | Two HTTP 200s in 9 and 10 ms    | `application/json; charset=utf-8` | Object: `version` number                          |
+| `GET /TMI/v1/network/telemetry?get=sim`      | Two HTTP 200s in 9 and 16 ms    | `application/json; charset=utf-8` | Object: `sim` object                              |
+| `GET /TMI/v1/network/telemetry?get=cell`     | Two HTTP 200s in 24 and 57 ms   | `application/json; charset=utf-8` | Object: `cell` object                             |
+| `GET /TMI/v1/gateway/?get=all` health checks | HTTP 200; 55--128 ms in harness | `application/json; charset=utf-8` | Existing `device`, `signal`, and `time` structure |
+
+The two responses for every candidate had identical complete field/type
+schemas. No observed field was null in either response. This is an observation
+of those samples, not a guarantee that the fields are non-nullable in every
+modem state. Both `cell.4g` and `cell.5g` had `sector.bands` and
+`supportedBands` arrays whose observed elements were strings; no heterogeneous
+or object array elements were observed. Complete paths and classifications are
+in [discovery-candidates.md](discovery-candidates.md).
+
+The harness recorded no console warnings/errors, no blocked mutation, and no
+failed request. Its health checks returned HTTP 200 before candidate traffic
+and after each endpoint pair. As elsewhere in this document, the Content-Type
+is browser-visible and may have been supplied by the Vite fallback rather than
+the modem.
 
 ## Safe observation procedure
 
