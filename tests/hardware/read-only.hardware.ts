@@ -3,6 +3,7 @@ import {
   test,
   type Locator,
   type Page,
+  type Request,
   type Response,
 } from "@playwright/test";
 import {
@@ -23,6 +24,33 @@ function apiResponse(page: Page, pathAndQuery: string): Promise<Response> {
     const url = new URL(response.url());
     return `${url.pathname}${url.search}` === pathAndQuery;
   });
+}
+
+async function apiResponseOrFailure(
+  page: Page,
+  pathAndQuery: string,
+): Promise<Response> {
+  function matches(urlString: string): boolean {
+    const url = new URL(urlString);
+    return `${url.pathname}${url.search}` === pathAndQuery;
+  }
+
+  const outcome = await Promise.race([
+    page
+      .waitForResponse((response) => matches(response.url()))
+      .then((response) => ({ response })),
+    page
+      .waitForEvent("requestfailed", {
+        predicate: (request: Request) => matches(request.url()),
+      })
+      .then(() => ({ response: null })),
+  ]);
+
+  expect(
+    outcome.response,
+    `${pathAndQuery} should receive an HTTP response`,
+  ).not.toBeNull();
+  return outcome.response!;
 }
 
 function card(page: Page, heading: string): Locator {
@@ -63,8 +91,13 @@ test("validates all read-only pages against observed API responses", async ({
   try {
     await page.goto("/login");
     await page.getByLabel("Password").fill(password!);
+    const loginResponsePromise = apiResponseOrFailure(page, "/api/auth/login");
     const gatewayResponsePromise = apiResponse(page, "/api/gateway/?get=all");
+    // Avoid a secondary rejected wait when login fails before navigation.
+    void gatewayResponsePromise.catch(() => undefined);
     await page.getByRole("button", { name: "Submit" }).click();
+    const loginResponse = await loginResponsePromise;
+    expect(loginResponse.ok(), "login endpoint should succeed").toBe(true);
     const gatewayResponse = await gatewayResponsePromise;
     expect(gatewayResponse.ok(), "gateway endpoint should succeed").toBe(true);
     const gateway = await gatewayResponse.json();

@@ -2,24 +2,34 @@
 
 ## Current run status
 
-Live authenticated validation was not performed during the initial harness
-implementation because `ARCADYAN_PASSWORD` was absent from the environment.
-One unauthenticated request to the already-known gateway GET returned HTTP 200;
-its response was discarded. Two later attempts to inspect only field paths and
-types received no bytes before 4- and 10-second timeouts, so they were stopped
-without further retries. No raw modem response, token, cookie, identifier,
-screenshot, trace, or capture was written to the repository.
+Authenticated validation was attempted through the normal login UI on
+2026-07-18 with the required credential present in the process environment.
+The browser issued exactly the allowed `POST /TMI/v1/auth/login`, but the
+request received no HTTP response before the application's approximately
+four-second Axios timeout aborted it. Repeated suite runs reproduced the same
+pre-response timeout, including one run with a longer Playwright test timeout.
+No authenticated page or known authenticated GET was reached, and the mutation
+guard observed no other state-changing request.
+
+The earlier unauthenticated evidence remains unchanged: one request to the
+already-known gateway GET returned HTTP 200 and its response was discarded;
+two later direct attempts received no bytes before 4- and 10-second timeouts.
+No raw modem response, header, token, cookie, credential, identifier,
+screenshot, trace, HAR, or capture was retained. Because the authenticated run
+produced no response body, it supplied no schema, UI-mapping, or unused-field
+evidence; `ui-api-map.md` and `discovery-candidates.md` therefore remain
+unchanged.
 
 Run the suite as described in [testing.md](testing.md), then record only
 sanitized observations in the table below. The local Playwright attachment is
 the detailed source of field names/types and should not be committed.
 
-| Endpoint                                      | Live status                                                            | Content-Type                         | Top-level shape                                                | UI fields checked                    | Polling                            | Confidence                                      |
-| --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------- | ------------------------------------ | ---------------------------------- | ----------------------------------------------- |
-| `POST /TMI/v1/auth/login`                     | Not run (credential absent)                                            | Not observed                         | Expected `object`; body deliberately excluded from diagnostics | Authentication only                  | Initial login and only after a 401 | Static only                                     |
-| `GET /TMI/v1/gateway/?get=all`                | HTTP 200 once without authorization; two subsequent transient timeouts | Missing on completed direct response | Not inspected; expected object: `device`, `signal`             | Not exercised through UI             | 5 seconds after completion         | Endpoint/status observed; schema/UI static only |
-| `GET /TMI/v1/network/configuration/v2?get=ap` | Not run                                                                | Not observed                         | Expected object: `ssids` array                                 | Per-network 2.4GHz and 5GHz booleans | 20 seconds after completion        | Static only                                     |
-| `GET /TMI/v1/network/telemetry/?get=clients`  | Not run                                                                | Not observed                         | Expected object: `clients` object                              | Counts for all three interfaces      | 5 seconds after completion         | Static only                                     |
+| Endpoint                                      | Live status                                                            | Content-Type                         | Top-level shape                                           | UI fields checked                    | Polling                            | Confidence                                             |
+| --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------- | ------------------------------------ | ---------------------------------- | ------------------------------------------------------ |
+| `POST /TMI/v1/auth/login`                     | Request emitted; no HTTP response before client timeout                | Not observed                         | Not observed; body deliberately excluded from diagnostics | Authentication only                  | Initial login and only after a 401 | Request path/method live-confirmed; schema static only |
+| `GET /TMI/v1/gateway/?get=all`                | HTTP 200 once without authorization; two subsequent transient timeouts | Missing on completed direct response | Not inspected; expected object: `device`, `signal`        | Not exercised through UI             | 5 seconds after completion         | Endpoint/status observed; schema/UI static only        |
+| `GET /TMI/v1/network/configuration/v2?get=ap` | Not run                                                                | Not observed                         | Expected object: `ssids` array                            | Per-network 2.4GHz and 5GHz booleans | 20 seconds after completion        | Static only                                            |
+| `GET /TMI/v1/network/telemetry/?get=clients`  | Not run                                                                | Not observed                         | Expected object: `clients` object                         | Counts for all three interfaces      | 5 seconds after completion         | Static only                                            |
 
 ## Discrepancies to validate live
 
@@ -33,6 +43,9 @@ the detailed source of field names/types and should not be committed.
 - The declared TypeScript shapes do not prove runtime type, nullability, or
   field presence. The hardware run must specifically note strings in place of
   numbers/booleans, nulls, missing keys, and additional keys.
+
+The 2026-07-18 run did not confirm or disprove any of these discrepancies. It
+stopped at the login timeout before an authenticated response was available.
 
 ## Safe observation procedure
 
