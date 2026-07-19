@@ -39,7 +39,7 @@ function PasswordVisibilityToggle({
 
 export function SystemPage() {
   const user = useRequireAuth();
-  const { user: authUser } = useAuth();
+  const { user: authUser, login, logout } = useAuth();
   const [clients, setClients] = useState<ClientsResponse | null>(null);
   const [showDevices, setShowDevices] = useState(false);
 
@@ -76,10 +76,22 @@ export function SystemPage() {
     setIsSaving(true);
     try {
       await resetAdminPassword(newPassword);
+      // The stored credential is now stale; refresh it immediately so
+      // transparent re-authentication and the current-password check above
+      // keep working with the new password.
+      try {
+        await login(newPassword);
+      } catch {
+        // The password changed but re-authentication failed. Never keep a
+        // stale credential in memory — force a fresh login instead.
+        logout();
+        return;
+      }
       setPasswordMessage({
         kind: "success",
         text: "Password updated. Use the new password next time you log in.",
       });
+      setCurrentPassword("");
       setNewPassword("");
     } catch {
       setPasswordMessage({

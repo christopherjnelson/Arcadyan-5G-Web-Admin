@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type {
   ClientsResponse,
   Credentials,
@@ -39,21 +39,59 @@ export function setReauthHandler(handler: (() => Promise<string>) | null) {
   reauthHandler = handler;
 }
 
-const retriedRequests = new WeakSet<object>();
+/**
+ * In-flight re-authentication, shared so concurrent 401 responses trigger
+ * a single login instead of N parallel logins racing on the stored token.
+ * Cleared once settled so the next 401 after that starts a fresh login.
+ */
+let reauthPromise: Promise<string> | null = null;
+
+function reauthenticate(): Promise<string> {
+  if (!reauthHandler) {
+    return Promise.reject(new Error("No re-auth handler is registered"));
+  }
+  if (!reauthPromise) {
+    reauthPromise = reauthHandler().finally(() => {
+      reauthPromise = null;
+    });
+  }
+  return reauthPromise;
+}
+
+/**
+ * Axios rebuilds the config object on every request (mergeConfig), so an
+ * identity-based guard (e.g. a WeakSet of seen configs) can never recognize
+ * a retried request. This marker travels inside the config and therefore
+ * survives the merge, capping every request at exactly one retry.
+ */
+type RetriableRequestConfig = InternalAxiosRequestConfig & {
+  __retriedOnce?: boolean;
+};
+
+/**
+ * The re-auth login call goes through this same axios instance. Never
+ * apply the retry branch to it: a 401 from /auth/login means the stored
+ * credential was rejected, and re-authenticating again would recurse
+ * without bound and could lock the admin account.
+ */
+function isLoginRequest(config: AxiosError["config"]): boolean {
+  return config?.url?.includes("/auth/login") ?? false;
+}
 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const original = error.config;
+    const original = error.config as RetriableRequestConfig | undefined;
     if (
       error.response?.status === 401 &&
       original &&
-      !retriedRequests.has(original) &&
+      !isLoginRequest(original) &&
+      !original.__retriedOnce &&
       reauthHandler
     ) {
-      retriedRequests.add(original);
+      original.__retriedOnce = true;
       try {
-        const token = await reauthHandler();
+        const token = await reauthenticate();
         setAuthToken(token);
         original.headers.Authorization = `Bearer ${token}`;
         return await api.request(original);
@@ -64,7 +102,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
-
 /** Broad error categories the UI knows how to present. */
 export type ApiErrorKind = "auth" | "timeout" | "unreachable" | "unknown";
 
