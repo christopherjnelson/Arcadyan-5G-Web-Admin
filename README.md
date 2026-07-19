@@ -34,6 +34,12 @@ output has no proxy at all. A production deployment must reverse-proxy
 `/api/*` → `http://192.168.12.1/TMI/v1/*` (e.g. via nginx or Caddy on
 the gateway's LAN), or every API call will 404.
 
+Note that the gateway returns JSON bodies without a `Content-Type`
+header. The dev proxy fills in `application/json; charset=utf-8` when it
+is missing, so a production reverse proxy should do the same — otherwise
+Firefox logs a misleading "XML Parsing Error: not well-formed" for every
+successful response.
+
 # Tech Stack
 
 - React 19 + TypeScript, built with Vite
