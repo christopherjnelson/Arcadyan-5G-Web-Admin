@@ -20,7 +20,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "axios": "^1.20.0",
-    "lucide-react": "^0.525.0",
+    "lucide-react": "^1.61.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router": "^7.18.2"
