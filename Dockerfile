@@ -5,7 +5,7 @@ RUN npm ci --ignore-scripts
 COPY . .
 RUN npm run lint && npm run typecheck && npm test && npm run build
 
-FROM nginxinc/nginx-unprivileged:1.30.6-alpine-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6
+FROM nginxinc/nginx-unprivileged:1.31.7-alpine-slim@sha256:a8cb0f33d51fa107c96fd2bd3a71aaf564ec131e9d2bdf8700944f0ed8b170d7
 LABEL org.opencontainers.image.source="https://github.com/christopherjnelson/Arcadyan-5G-Web-Admin" \
       org.opencontainers.image.title="Arcadyan 5G Web Admin" \
       org.opencontainers.image.description="Web admin and LAN API proxy for the Arcadyan KVD21 gateway"
