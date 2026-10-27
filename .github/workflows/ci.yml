@@ -35,3 +35,27 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm audit
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          load: true
+          tags: arcadyan-5g-web-admin:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: python3 scripts/smoke-docker.py arcadyan-5g-web-admin:ci
+      - uses: aquasecurity/trivy-action@8f28faec26515256b6d22074d1d2a8986f4cbd87
+        with:
+          version: v0.76.1
+          image-ref: arcadyan-5g-web-admin:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: "1"
