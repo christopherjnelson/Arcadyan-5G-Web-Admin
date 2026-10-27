@@ -36,19 +36,70 @@ local diagnostics, and sensitive-data precautions.
 
 ## Production
 
-The `/api` → `http://192.168.12.1/TMI/v1` proxy is **development-only**:
-it lives in `server.proxy` (`vite.config.ts`), which applies only to
-`vite dev`. `npm run preview` serves the built assets for verification
-but does **not** proxy API requests, and statically hosted `dist/`
-output has no proxy at all. A production deployment must reverse-proxy
-`/api/*` → `http://192.168.12.1/TMI/v1/*` (e.g. via nginx or Caddy on
-the gateway's LAN), or every API call will 404.
+Build and start the production container on a machine connected to the gateway's LAN:
 
-The gateway returns JSON bodies without a `Content-Type` header; the dev
-proxy fills in `application/json; charset=utf-8` when it is missing, so a
-production reverse proxy should do the same. See
-[`docs/research/live-validation.md`](docs/research/live-validation.md)
-for the full observation.
+```sh
+docker compose up --build -d
+```
+
+Open http://localhost:8080. Stop it with `docker compose down`.
+The container serves the built app with Nginx and proxies `/api/*` to
+`http://192.168.12.1/TMI/v1/*`. It preserves request bodies, authentication,
+cookies, query strings, and upstream error status codes, and fills in a JSON
+`Content-Type` only when the gateway did not supply one.
+
+For a different gateway address or HTTP port:
+
+```sh
+GATEWAY_HOST=192.168.12.1 GATEWAY_PORT=80 docker compose up --build -d
+```
+
+`GATEWAY_HOST` accepts an IPv4 address or DNS hostname. The container must be
+able to reach it; `localhost` inside the container refers to the container itself.
+The published port binds to `127.0.0.1` by default. To allow other LAN clients,
+change that address in `compose.yaml` to the host's LAN address. Those clients
+will be able to reach the gateway's management API through the proxy.
+
+The runtime runs as an unprivileged user, supports a read-only filesystem,
+and needs only a small temporary filesystem at `/tmp`. The Compose configuration
+drops all Linux capabilities and disables privilege escalation. Node.js, npm,
+development dependencies, local environment files, and diagnostics are excluded
+from the runtime image. `/healthz` checks the web server independently of gateway
+availability.
+
+To build and validate the image without contacting a real gateway:
+
+```sh
+docker build -t arcadyan-5g-web-admin:local .
+python3 scripts/smoke-docker.py
+```
+
+The smoke checks use a temporary mock gateway, verify the production proxy and
+SPA routes, and remove their containers and network when finished.
+
+When deploying `dist/` without Docker, configure the same `/api/*` reverse proxy
+in your web server. Vite's `server.proxy` applies only to development;
+`npm run preview` serves static files and does not proxy API requests.
+
+### Releases and automated checks
+
+Pull requests and pushes to `master` run tests, lint, type checking, production
+builds, and dependency audits on Node 24 and 26. They also build the Docker image,
+run its mock-gateway smoke checks, and reject high or critical image vulnerabilities.
+Dependabot maintains npm dependencies, Docker base images, and GitHub Actions.
+
+Publishing a GitHub Release tagged `v<package.json version>` (initially `v1.0.0`)
+validates the image again and publishes Linux AMD64 and ARM64 images to:
+
+```text
+ghcr.io/christopherjnelson/arcadyan-5g-web-admin:1.0.0
+```
+
+Stable releases also receive a minor-version tag, such as `1.0`, and `latest`.
+The release workflow includes build provenance and an SBOM. Publishing uses
+GitHub Actions' repository token, so no Docker Hub credentials are required.
+For the first publication, check the package's visibility in GitHub Packages
+and set it to public if anonymous pulls are desired.
 
 # Tech Stack
 
