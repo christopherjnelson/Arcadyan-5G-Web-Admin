@@ -8,6 +8,11 @@ updates:
       time: "09:00"
       timezone: "America/New_York"
     open-pull-requests-limit: 5
+    # Match the lowest supported Node major used by local and Docker builds.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
     groups:
       # Security fixes are raised as available, independently of the weekly schedule.
       security:
