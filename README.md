@@ -4,7 +4,8 @@ A modern web admin for the Arcadyan KVD21 5G gateway (T-Mobile Home Internet).
 
 # Getting Started
 
-Requires Node.js 20.19+ (or 22.12+).
+Requires Node.js 24.15+ on the Node 24 release line, or Node.js 26+.
+The pinned development version is in `.node-version` and `.nvmrc`.
 
 - git clone https://github.com/christopherjnelson/Arcadyan-5G-Web-Admin.git
 - cd Arcadyan-5G-Web-Admin
