@@ -39,6 +39,11 @@ updates:
           - "patch"
   - package-ecosystem: "docker"
     directory: "/"
+    # Keep the Docker builder on the chosen Node 24 release line.
+    ignore:
+      - dependency-name: "node"
+        update-types:
+          - "version-update:semver-major"
     schedule:
       interval: "weekly"
     groups:
