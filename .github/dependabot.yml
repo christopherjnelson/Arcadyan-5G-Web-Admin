@@ -14,6 +14,12 @@ updates:
         applies-to: "security-updates"
         patterns:
           - "*"
+      # The React plugin's peer dependency follows Vite's major version.
+      vite-toolchain:
+        applies-to: "version-updates"
+        patterns:
+          - "vite"
+          - "@vitejs/plugin-react"
       # Keep routine updates together; major upgrades stay in individual PRs.
       runtime:
         applies-to: "version-updates"
