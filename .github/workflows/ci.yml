@@ -52,7 +52,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - run: python3 scripts/smoke-docker.py arcadyan-5g-web-admin:ci
-      - uses: aquasecurity/trivy-action@8f28faec26515256b6d22074d1d2a8986f4cbd87
+      - uses: aquasecurity/trivy-action@38b337fff0a2f984d5be173c99e3f633438167ec
         with:
           version: v0.76.1
           image-ref: arcadyan-5g-web-admin:ci
